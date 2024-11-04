@@ -38,7 +38,6 @@ The **Kernel Module Management System** is a Go-based application that provides 
 3. **Run the Application**
    ```bash
    sudo go run main.go
-   ## Future Feature Ideas
 
 4. **API Endpoints**
 
