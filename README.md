@@ -4,6 +4,10 @@ Go REST API + Python FastAPI microservice with **real RAG** (Retrieval-Augmented
 
 ## Architecture
 
+> 💡 **Interactive Visualizations**: Standalone, interactive HTML diagrams authored with [Archify](https://github.com/tt-a1i/archify) are available in [`docs/diagrams/`](docs/diagrams/):
+> - 🏛️ **System Architecture**: [`docs/diagrams/architecture.html`](docs/diagrams/architecture.html) ([source JSON](docs/diagrams/architecture.json))
+> - ⚡ **Diagnostic Lifecycle Workflow**: [`docs/diagrams/workflow.html`](docs/diagrams/workflow.html) ([source JSON](docs/diagrams/workflow.json))
+
 ```
                         USER
                          │
@@ -248,6 +252,12 @@ kernel-module-manager-ai/
 │       ├── test_analyze.py
 │       ├── test_llm_client.py
 │       └── test_rag.py
+├── docs/
+│   └── diagrams/
+│       ├── architecture.html        # Interactive Archify architecture diagram
+│       ├── architecture.json        # Architecture diagram specification
+│       ├── workflow.html            # Interactive Archify workflow diagram
+│       └── workflow.json            # Workflow diagram specification
 ├── .env.example
 └── .gitignore
 ```

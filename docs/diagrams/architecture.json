@@ -1,0 +1,231 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Linux Kernel Module Manager & AI Diagnostic Assistant",
+    "output": ".archify/architecture-kernel-module-manager-ai-20261009-053527/kernel-module-manager-ai.html",
+    "quality_profile": "showcase"
+  },
+  "components": [
+    {
+      "id": "admin",
+      "type": "external",
+      "label": "DevOps / SRE",
+      "sublabel": "HTTP REST Client",
+      "pos": [50, 240],
+      "size": [130, 64]
+    },
+    {
+      "id": "router",
+      "type": "backend",
+      "label": "Go REST API",
+      "sublabel": "gorilla/mux :8080",
+      "pos": [300, 240],
+      "size": [140, 64],
+      "tag": "Bearer Auth"
+    },
+    {
+      "id": "kmod_exec",
+      "type": "backend",
+      "label": "Module Manager",
+      "sublabel": "modprobe / rmmod",
+      "pos": [300, 60],
+      "size": [140, 64]
+    },
+    {
+      "id": "collector",
+      "type": "backend",
+      "label": "Diagnostic Collector",
+      "sublabel": "modules.Diagnose()",
+      "pos": [550, 240],
+      "size": [150, 64]
+    },
+    {
+      "id": "linux_kernel",
+      "type": "external",
+      "label": "Linux Kernel",
+      "sublabel": "kmod / sysfs / procfs",
+      "pos": [550, 60],
+      "size": [150, 64]
+    },
+    {
+      "id": "ai_router",
+      "type": "backend",
+      "label": "FastAPI Service",
+      "sublabel": "uvicorn :8001 /analyze",
+      "pos": [820, 240],
+      "size": [150, 64],
+      "tag": "Token Guard"
+    },
+    {
+      "id": "rag_service",
+      "type": "backend",
+      "label": "RAG Orchestrator",
+      "sublabel": "services.rag_service",
+      "pos": [820, 420],
+      "size": [150, 64]
+    },
+    {
+      "id": "vector_db",
+      "type": "database",
+      "label": "ChromaDB Store",
+      "sublabel": "linux_kernel_docs",
+      "pos": [820, 580],
+      "size": [150, 64],
+      "tag": "Cosine Index"
+    },
+    {
+      "id": "embedder",
+      "type": "backend",
+      "label": "Sentence Embedder",
+      "sublabel": "all-MiniLM-L6-v2",
+      "pos": [1080, 580],
+      "size": [150, 64]
+    },
+    {
+      "id": "llm_client",
+      "type": "backend",
+      "label": "LLM Client",
+      "sublabel": "httpx async",
+      "pos": [1080, 240],
+      "size": [140, 64]
+    },
+    {
+      "id": "llm_provider",
+      "type": "cloud",
+      "label": "LLM API Provider",
+      "sublabel": "OpenAI / Groq",
+      "pos": [1360, 240],
+      "size": [140, 64],
+      "tag": "ChatCompletions"
+    }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Host Environment (Go Service)",
+      "wraps": ["router", "kmod_exec", "collector", "linux_kernel"]
+    },
+    {
+      "kind": "region",
+      "label": "AI Microservice Container",
+      "wraps": ["ai_router", "rag_service", "vector_db", "embedder", "llm_client"]
+    },
+    {
+      "kind": "security-group",
+      "label": "Cloud AI Provider",
+      "wraps": ["llm_provider"]
+    }
+  ],
+  "connections": [
+    {
+      "id": "req-diagnose",
+      "from": "admin",
+      "to": "router",
+      "label": "POST /diagnose",
+      "variant": "emphasis"
+    },
+    {
+      "id": "call-diagnose",
+      "from": "router",
+      "to": "collector",
+      "label": "gather evidence",
+      "variant": "emphasis"
+    },
+    {
+      "id": "exec-diag-commands",
+      "from": "collector",
+      "to": "linux_kernel",
+      "label": "uname / dmesg / lsmod"
+    },
+    {
+      "id": "route-mod-op",
+      "from": "router",
+      "to": "kmod_exec",
+      "label": "load / unload",
+      "variant": "dashed"
+    },
+    {
+      "id": "exec-kmod",
+      "from": "kmod_exec",
+      "to": "linux_kernel",
+      "label": "modprobe / rmmod"
+    },
+    {
+      "id": "forward-evidence",
+      "from": "collector",
+      "to": "ai_router",
+      "label": "POST /analyze",
+      "variant": "emphasis"
+    },
+    {
+      "id": "query-rag",
+      "from": "ai_router",
+      "to": "rag_service",
+      "label": "retrieve context",
+      "variant": "emphasis"
+    },
+    {
+      "id": "embed-evidence",
+      "from": "rag_service",
+      "to": "embedder",
+      "label": "embed query"
+    },
+    {
+      "id": "search-docs",
+      "from": "rag_service",
+      "to": "vector_db",
+      "label": "similarity search",
+      "variant": "emphasis"
+    },
+    {
+      "id": "pass-vector",
+      "from": "embedder",
+      "to": "vector_db",
+      "label": "query vector"
+    },
+    {
+      "id": "invoke-llm",
+      "from": "ai_router",
+      "to": "llm_client",
+      "label": "evidence + docs",
+      "variant": "emphasis"
+    },
+    {
+      "id": "cloud-completion",
+      "from": "llm_client",
+      "to": "llm_provider",
+      "label": "HTTPS completions",
+      "variant": "emphasis"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Host Management Tier",
+      "items": [
+        "Go REST API guards /module operations with Bearer token authentication",
+        "Executes read-only Linux diagnostic commands (uname, lsmod, modinfo, dmesg, journalctl)",
+        "Platform boundary: live kernel operations run on Linux hosts"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Diagnostic RAG Pipeline",
+      "items": [
+        "ChromaDB stores curated Linux kernel documentation chunks",
+        "Sentence-Transformers (all-MiniLM-L6-v2) generates 384-d semantic embeddings",
+        "Retrieval query built dynamically from error traces and module metadata"
+      ]
+    },
+    {
+      "dot": "violet",
+      "title": "AI Inference & Security",
+      "items": [
+        "FastAPI orchestrates async LLM inference via OpenAI/Groq compatible API",
+        "Strict JSON schema enforcement with Pydantic validation",
+        "Read-only advisory: AI never executes shell or kernel commands directly"
+      ]
+    }
+  ]
+}

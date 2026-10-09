@@ -1,0 +1,258 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Kernel Module AI Diagnostic & Troubleshooting Workflow",
+    "animation": "trace",
+    "visual_preset": "signal-flow",
+    "quality_profile": "showcase",
+    "output": ".archify/workflow-kernel-module-diagnose-workflow-20261009-054113/kernel-module-diagnose-workflow.html"
+  },
+  "lanes": [
+    { "id": "operator", "label": "Operator / SRE" },
+    { "id": "gateway", "label": "Go Backend & Linux Host" },
+    { "id": "ai_service", "label": "Python AI & Cloud LLM Engine" },
+    { "id": "exceptions", "label": "Policy & Recovery", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "phase_intake", "label": "Intake & Auth", "fromCol": 0, "toCol": 0, "variant": "default" },
+    { "id": "phase_telemetry", "label": "Host Telemetry", "fromCol": 1, "toCol": 1, "variant": "emphasis" },
+    { "id": "phase_ingress", "label": "AI Ingestion", "fromCol": 2, "toCol": 2, "variant": "default" },
+    { "id": "phase_rag", "label": "RAG Retrieval", "fromCol": 3, "toCol": 3, "variant": "emphasis" },
+    { "id": "phase_reasoning", "label": "LLM Inference", "fromCol": 4, "toCol": 4, "variant": "default" },
+    { "id": "phase_delivery", "label": "Validation & Report", "fromCol": 5, "toCol": 5, "variant": "emphasis" }
+  ],
+  "groups": [
+    { "id": "grp_auth", "label": "Access Gate", "lane": "gateway", "fromCol": 0, "toCol": 0, "variant": "security" },
+    { "id": "grp_collect", "label": "Evidence Gathering", "lane": "gateway", "fromCol": 1, "toCol": 1, "variant": "emphasis" },
+    { "id": "grp_ai", "label": "RAG & AI Inference", "lane": "ai_service", "fromCol": 2, "toCol": 5, "variant": "emphasis" },
+    { "id": "grp_policy", "label": "Error & Fallback Handling", "lane": "exceptions", "fromCol": 0, "toCol": 5, "variant": "security" }
+  ],
+  "mainPath": [
+    "op_request",
+    "auth_validate",
+    "diag_collector",
+    "ai_ingress",
+    "rag_retrieve",
+    "llm_step",
+    "schema_validator",
+    "op_report"
+  ],
+  "nodes": [
+    {
+      "id": "op_request",
+      "lane": "operator",
+      "col": 0,
+      "type": "external",
+      "label": "Diagnose Request",
+      "sublabel": "curl / REST client",
+      "width": 135
+    },
+    {
+      "id": "op_report",
+      "lane": "operator",
+      "col": 5,
+      "type": "frontend",
+      "label": "Actionable Report",
+      "sublabel": "causes & solutions",
+      "width": 135
+    },
+    {
+      "id": "auth_validate",
+      "lane": "gateway",
+      "col": 0,
+      "type": "security",
+      "label": "Token & Regex Guard",
+      "sublabel": "auth + sanitize module",
+      "tag": "Fail-closed",
+      "width": 140
+    },
+    {
+      "id": "diag_collector",
+      "lane": "gateway",
+      "col": 1,
+      "type": "backend",
+      "label": "Telemetry Collector",
+      "sublabel": "uname / lsmod / dmesg",
+      "tag": "3s timeout",
+      "width": 140
+    },
+    {
+      "id": "raw_fallback",
+      "lane": "exceptions",
+      "col": 1,
+      "type": "messagebus",
+      "label": "Evidence Fallback",
+      "sublabel": "AI_SERVICE_URL unset",
+      "width": 140
+    },
+    {
+      "id": "ai_ingress",
+      "lane": "ai_service",
+      "col": 2,
+      "type": "backend",
+      "label": "FastAPI Ingress",
+      "sublabel": "verify service token",
+      "width": 135
+    },
+    {
+      "id": "rag_retrieve",
+      "lane": "ai_service",
+      "col": 3,
+      "type": "database",
+      "label": "ChromaDB RAG",
+      "sublabel": "embed query & match",
+      "tag": "top-5 docs",
+      "width": 140
+    },
+    {
+      "id": "llm_step",
+      "lane": "ai_service",
+      "col": 4,
+      "type": "cloud",
+      "label": "LLM Reasoning",
+      "sublabel": "OpenAI / Groq API",
+      "tag": "gpt-4o / llama-3",
+      "width": 140
+    },
+    {
+      "id": "schema_validator",
+      "lane": "ai_service",
+      "col": 5,
+      "type": "security",
+      "label": "Pydantic Validator",
+      "sublabel": "DiagnosisResult schema",
+      "tag": "Read-only guard",
+      "width": 140
+    },
+    {
+      "id": "rejected_req",
+      "lane": "exceptions",
+      "col": 0,
+      "type": "security",
+      "label": "Rejected Client",
+      "sublabel": "401 / 400 Bad Request",
+      "width": 135
+    },
+    {
+      "id": "parse_error",
+      "lane": "exceptions",
+      "col": 5,
+      "type": "security",
+      "label": "Gateway Error",
+      "sublabel": "502 invalid LLM JSON",
+      "width": 135
+    }
+  ],
+  "edges": [
+    {
+      "id": "req-to-auth",
+      "from": "op_request",
+      "to": "auth_validate",
+      "label": "POST /diagnose",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "auth-reject",
+      "from": "auth_validate",
+      "to": "rejected_req",
+      "label": "unauthorized",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "auth-to-collector",
+      "from": "auth_validate",
+      "to": "diag_collector",
+      "label": "authorized",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "collector-fallback",
+      "from": "diag_collector",
+      "to": "raw_fallback",
+      "label": "no AI URL",
+      "variant": "dashed",
+      "role": "branch"
+    },
+    {
+      "id": "collector-to-ai",
+      "from": "diag_collector",
+      "to": "ai_ingress",
+      "label": "POST /analyze",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "ai-to-rag",
+      "from": "ai_ingress",
+      "to": "rag_retrieve",
+      "label": "build query",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "rag-to-llm",
+      "from": "rag_retrieve",
+      "to": "llm_step",
+      "label": "evidence + docs",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "llm-to-validator",
+      "from": "llm_step",
+      "to": "schema_validator",
+      "label": "raw JSON",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "validator-error",
+      "from": "schema_validator",
+      "to": "parse_error",
+      "label": "malformed output",
+      "variant": "security",
+      "role": "error"
+    },
+    {
+      "id": "validator-to-report",
+      "from": "schema_validator",
+      "to": "op_report",
+      "label": "grounded report",
+      "variant": "emphasis",
+      "role": "main"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Security & Safeguards",
+      "items": [
+        "Strict token authentication required for all diagnostic and management endpoints",
+        "Module names sanitized via alphanumeric/hyphen regex to prevent shell injection",
+        "Read-only assistant: AI diagnoses evidence but cannot autonomously alter kernel state"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "RAG Augmentation Pipeline",
+      "items": [
+        "Dynamic query synthesis combines target module, errors, and kernel version",
+        "Dense embeddings generated locally using all-MiniLM-L6-v2 (384 dimensions)",
+        "Curated Linux manual pages & kernel documentation prevent LLM hallucination"
+      ]
+    },
+    {
+      "dot": "amber",
+      "title": "Fault Tolerance & Fallback",
+      "items": [
+        "Per-command 3-second exec timeout prevents blocking on unresponsive kernel locks",
+        "Graceful degradation returns raw system evidence if AI microservice is unconfigured",
+        "Strict Pydantic schema validation guards against malformed LLM responses"
+      ]
+    }
+  ]
+}
