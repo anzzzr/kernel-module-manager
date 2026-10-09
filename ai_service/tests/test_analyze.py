@@ -6,7 +6,7 @@ from unittest.mock import patch, AsyncMock
 import pytest
 from fastapi.testclient import TestClient
 
-from app.main import app
+from kernel_diagnostic_ai.main import app
 
 
 class TestHealth:
@@ -68,7 +68,7 @@ class TestAnalyzeValidation:
 
 
 class TestAnalyzeWithMockedLLM:
-    @patch("app.routers.analyze.call_llm", new_callable=AsyncMock)
+    @patch("kernel_diagnostic_ai.routers.analyze.call_llm", new_callable=AsyncMock)
     def test_successful_diagnosis(self, mock_llm, mock_env, sample_evidence):
         mock_llm.return_value = {
             "diagnosis": "Module loaded successfully",
@@ -91,7 +91,7 @@ class TestAnalyzeWithMockedLLM:
         assert data["rag_context_used"] is False
         mock_llm.assert_called_once()
 
-    @patch("app.routers.analyze.call_llm", new_callable=AsyncMock)
+    @patch("kernel_diagnostic_ai.routers.analyze.call_llm", new_callable=AsyncMock)
     def test_llm_returns_invalid_output(self, mock_llm, mock_env, sample_evidence):
         mock_llm.side_effect = ValueError("LLM response missing required fields")
         client = TestClient(app)
@@ -103,7 +103,7 @@ class TestAnalyzeWithMockedLLM:
         assert resp.status_code == 502
         assert "invalid structured output" in resp.json()["detail"]
 
-    @patch("app.routers.analyze.call_llm", new_callable=AsyncMock)
+    @patch("kernel_diagnostic_ai.routers.analyze.call_llm", new_callable=AsyncMock)
     def test_diagnosis_with_errors_in_evidence(self, mock_llm, mock_env, sample_evidence_with_errors):
         mock_llm.return_value = {
             "diagnosis": "Module not found",
@@ -127,7 +127,7 @@ class TestAnalyzeWithMockedLLM:
 class TestAnalyzeNoToken:
     """When AI_SERVICE_TOKEN is not set, auth should be skipped."""
 
-    @patch("app.routers.analyze.call_llm", new_callable=AsyncMock)
+    @patch("kernel_diagnostic_ai.routers.analyze.call_llm", new_callable=AsyncMock)
     def test_no_auth_required(self, mock_llm, mock_env_no_token, sample_evidence):
         mock_llm.return_value = {
             "diagnosis": "OK",

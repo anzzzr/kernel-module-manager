@@ -70,7 +70,7 @@ Go REST API + Python FastAPI microservice with **real RAG** (Retrieval-Augmented
 cd ai_service
 uv venv --python 3.13
 source .venv/bin/activate
-uv pip install -r requirements.txt
+uv pip install -e .
 
 export LLM_API_KEY='your-llm-api-key'
 export AI_SERVICE_TOKEN='shared-secret'
@@ -78,7 +78,9 @@ export AI_SERVICE_TOKEN='shared-secret'
 # export LLM_BASE_URL='https://api.groq.com/openai/v1'
 # export LLM_MODEL='llama-3.3-70b-versatile'
 
-uvicorn app.main:app --host 127.0.0.1 --port 8001
+# Run via CLI:
+kernel-ai serve --host 127.0.0.1 --port 8001
+# (or via uvicorn: uvicorn kernel_diagnostic_ai.main:app --port 8001)
 ```
 
 On first startup, the RAG pipeline loads documentation from `docs/`, generates embeddings, and populates ChromaDB. This takes ~10 seconds on the first run.

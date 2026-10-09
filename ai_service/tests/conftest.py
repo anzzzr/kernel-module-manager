@@ -34,7 +34,7 @@ def mock_env_no_llm_key(monkeypatch):
 @pytest.fixture
 def client(mock_env):
     """FastAPI test client with mocked environment."""
-    from app.main import app
+    from kernel_diagnostic_ai.main import app
     return TestClient(app)
 
 

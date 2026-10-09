@@ -3,7 +3,7 @@
 import pytest
 from pydantic import ValidationError
 
-from app.models import Evidence, DiagnosisResult, AnalyzeResponse
+from kernel_diagnostic_ai.models import Evidence, DiagnosisResult, AnalyzeResponse
 
 
 class TestEvidence:

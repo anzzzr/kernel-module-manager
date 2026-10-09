@@ -1,8 +1,29 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "kernel-diagnostic-ai"
 version = "0.1.0"
 description = "AI-powered Linux kernel module diagnostic service with RAG"
+readme = "README.md"
 requires-python = ">=3.11"
+authors = [
+    { name = "Anzer Khan", email = "anzzzerkhan@gmail.com" }
+]
+license = "MIT"
+keywords = ["linux", "kernel", "diagnostic", "ai", "rag", "fastapi", "chromadb"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Intended Audience :: System Administrators",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: System :: Operating System Kernels :: Linux",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "fastapi>=0.115",
     "uvicorn>=0.30",
@@ -17,6 +38,24 @@ dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24",
     "respx>=0.22",
+]
+
+[project.scripts]
+kernel-ai = "kernel_diagnostic_ai.cli:main"
+
+[project.urls]
+Homepage = "https://github.com/anzzzr/kernel-module-manager"
+Repository = "https://github.com/anzzzr/kernel-module-manager.git"
+Issues = "https://github.com/anzzzr/kernel-module-manager/issues"
+
+[tool.hatch.build.targets.wheel]
+packages = ["kernel_diagnostic_ai"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "/kernel_diagnostic_ai",
+    "/README.md",
+    "/pyproject.toml",
 ]
 
 [tool.pytest.ini_options]

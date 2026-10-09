@@ -6,9 +6,9 @@ import shutil
 
 import pytest
 
-from app.rag.documents import load_documents, chunk_text, chunk_documents
-from app.services.rag_service import build_query
-from app.models import Evidence
+from kernel_diagnostic_ai.rag.documents import load_documents, chunk_text, chunk_documents
+from kernel_diagnostic_ai.services.rag_service import build_query
+from kernel_diagnostic_ai.models import Evidence
 
 
 class TestLoadDocuments:
@@ -129,8 +129,8 @@ class TestRAGStoreIntegration:
     def test_store_lifecycle(self, tmp_path):
         """Test init → populate → query cycle."""
         try:
-            from app.rag.store import init_store, populate_store, query_store
-            from app.rag.documents import DocumentChunk
+            from kernel_diagnostic_ai.rag.store import init_store, populate_store, query_store
+            from kernel_diagnostic_ai.rag.documents import DocumentChunk
         except ImportError:
             pytest.skip("chromadb or sentence-transformers not installed")
 
@@ -175,7 +175,7 @@ class TestRAGStoreIntegration:
     def test_empty_store_query(self, tmp_path):
         """Query on empty store returns empty list."""
         try:
-            from app.rag.store import init_store, query_store
+            from kernel_diagnostic_ai.rag.store import init_store, query_store
         except ImportError:
             pytest.skip("chromadb not installed")
 

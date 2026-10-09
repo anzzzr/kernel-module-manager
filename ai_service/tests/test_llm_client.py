@@ -6,7 +6,7 @@ from unittest.mock import patch, AsyncMock, MagicMock
 import pytest
 import httpx
 
-from app.services.llm_client import call_llm, SYSTEM_PROMPT
+from kernel_diagnostic_ai.services.llm_client import call_llm, SYSTEM_PROMPT
 
 
 class TestCallLLM:
@@ -40,7 +40,7 @@ class TestCallLLM:
         mock_client_instance.__aenter__ = AsyncMock(return_value=mock_client_instance)
         mock_client_instance.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("app.services.llm_client.httpx.AsyncClient", return_value=mock_client_instance):
+        with patch("kernel_diagnostic_ai.services.llm_client.httpx.AsyncClient", return_value=mock_client_instance):
             result = await call_llm('{"module":"test","commands":{}}')
 
         assert result["diagnosis"] == "OK"
@@ -71,7 +71,7 @@ class TestCallLLM:
         mock_client_instance.__aenter__ = AsyncMock(return_value=mock_client_instance)
         mock_client_instance.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("app.services.llm_client.httpx.AsyncClient", return_value=mock_client_instance):
+        with patch("kernel_diagnostic_ai.services.llm_client.httpx.AsyncClient", return_value=mock_client_instance):
             result = await call_llm('{"module":"test","commands":{}}')
 
         assert result["diagnosis"] == "test"
@@ -105,7 +105,7 @@ class TestCallLLM:
         mock_client_instance.__aenter__ = AsyncMock(return_value=mock_client_instance)
         mock_client_instance.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("app.services.llm_client.httpx.AsyncClient", return_value=mock_client_instance):
+        with patch("kernel_diagnostic_ai.services.llm_client.httpx.AsyncClient", return_value=mock_client_instance):
             result = await call_llm('{"module":"test"}', rag_context="Relevant docs here")
 
         # Check that the request included the RAG context
@@ -138,7 +138,7 @@ class TestCallLLM:
         mock_client_instance.__aenter__ = AsyncMock(return_value=mock_client_instance)
         mock_client_instance.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("app.services.llm_client.httpx.AsyncClient", return_value=mock_client_instance):
+        with patch("kernel_diagnostic_ai.services.llm_client.httpx.AsyncClient", return_value=mock_client_instance):
             with pytest.raises(ValueError, match="missing required fields"):
                 await call_llm('{"module":"test","commands":{}}')
 
@@ -165,7 +165,7 @@ class TestCallLLM:
         mock_client_instance.__aenter__ = AsyncMock(return_value=mock_client_instance)
         mock_client_instance.__aexit__ = AsyncMock(return_value=False)
 
-        with patch("app.services.llm_client.httpx.AsyncClient", return_value=mock_client_instance):
+        with patch("kernel_diagnostic_ai.services.llm_client.httpx.AsyncClient", return_value=mock_client_instance):
             with pytest.raises(json.JSONDecodeError):
                 await call_llm('{"module":"test","commands":{}}')
 
