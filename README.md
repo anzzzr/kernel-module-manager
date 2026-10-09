@@ -4,9 +4,13 @@ Go REST API + Python FastAPI microservice with **real RAG** (Retrieval-Augmented
 
 ## Architecture
 
-> 💡 **Interactive Visualizations**: Standalone, interactive HTML diagrams authored with [Archify](https://github.com/tt-a1i/archify) are available in [`docs/diagrams/`](docs/diagrams/):
-> - 🏛️ **System Architecture**: [`docs/diagrams/architecture.html`](docs/diagrams/architecture.html) ([source JSON](docs/diagrams/architecture.json))
-> - ⚡ **Diagnostic Lifecycle Workflow**: [`docs/diagrams/workflow.html`](docs/diagrams/workflow.html) ([source JSON](docs/diagrams/workflow.json))
+<p align="center">
+  <img src="docs/diagrams/architecture.svg" alt="AI-Powered Kernel Module Manager Architecture" width="100%" />
+</p>
+
+<p align="center">
+  <em>Interactive version with pan/zoom/inspect: <a href="docs/diagrams/architecture.html"><b>docs/diagrams/architecture.html</b></a> (source: <a href="docs/diagrams/architecture.json">architecture.json</a>)</em>
+</p>
 
 ```
                         USER
@@ -176,6 +180,18 @@ The RAG pipeline grounds LLM diagnoses in real Linux kernel documentation:
 6. **Augmentation** — Retrieved documentation is injected into the LLM prompt alongside the diagnostic evidence.
 
 The RAG store is populated automatically on first startup. Documentation is in `ai_service/docs/`.
+ 
+## Diagnostic & Troubleshooting Workflow
+
+<p align="center">
+  <img src="docs/diagrams/workflow.svg" alt="Kernel Module Diagnostic Lifecycle Workflow" width="100%" />
+</p>
+
+<p align="center">
+  <em>Interactive version with animated trace: <a href="docs/diagrams/workflow.html"><b>docs/diagrams/workflow.html</b></a> (source: <a href="docs/diagrams/workflow.json">workflow.json</a>)</em>
+</p>
+
+The diagnostic pipeline spans 4 core lanes across intake, host telemetry, AI ingestion, semantic RAG matching, LLM reasoning, and fail-closed security recovery.
 
 ## Testing
 
