@@ -28,15 +28,26 @@ env/
 *.swo
 *~
 
-# Environment
+# Environment & Secrets
 .env
-.env.local
+.env.*
+!.env.example
+*.pem
+*.key
 
-# ChromaDB data
+# ChromaDB & vector data
+chroma/
 chroma_data/
 
-# Sentence-transformers cache
+# Sentence-transformers and eval caches
 .cache/
+eval/.cache/
+
+# Tooling and caches
+.pytest_cache/
+.ruff_cache/
+.codegraph/
+node_modules/
 
 # macOS
 .DS_Store
