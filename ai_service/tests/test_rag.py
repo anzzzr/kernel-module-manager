@@ -1,14 +1,11 @@
 """Tests for the RAG pipeline: documents, chunking, store, and service."""
 
 import os
-import tempfile
-import shutil
 
 import pytest
-
-from kernel_diagnostic_ai.rag.documents import load_documents, chunk_text, chunk_documents
-from kernel_diagnostic_ai.services.rag_service import build_query
 from kernel_diagnostic_ai.models import Evidence
+from kernel_diagnostic_ai.rag.documents import chunk_documents, chunk_text, load_documents
+from kernel_diagnostic_ai.services.rag_service import build_query
 
 
 class TestLoadDocuments:
@@ -129,8 +126,8 @@ class TestRAGStoreIntegration:
     def test_store_lifecycle(self, tmp_path):
         """Test init → populate → query cycle."""
         try:
-            from kernel_diagnostic_ai.rag.store import init_store, populate_store, query_store
             from kernel_diagnostic_ai.rag.documents import DocumentChunk
+            from kernel_diagnostic_ai.rag.store import init_store, populate_store, query_store
         except ImportError:
             pytest.skip("chromadb or sentence-transformers not installed")
 
