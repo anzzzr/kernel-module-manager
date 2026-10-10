@@ -2,231 +2,323 @@
   "schema_version": 1,
   "diagram_type": "architecture",
   "meta": {
-    "title": "Linux Kernel Module Manager & AI Diagnostic Assistant",
-    "output": ".archify/architecture-kernel-module-manager-ai-20261009-053527/kernel-module-manager-ai.html",
-    "quality_profile": "showcase"
+    "title": "Kernel Module Manager & AI Diagnostic Architecture",
+    "subtitle": "Go host daemon and Python FastAPI microservice with hybrid RAG and security boundaries",
+    "output": "docs/diagrams/architecture.html",
+    "quality_profile": "showcase",
+    "viewBox": [1200, 720],
+    "repository": {
+      "url": "https://github.com/anzzzr/kernel-module-manager",
+      "revision": "33afc431234b80a6046093b899f04f21e766ad35"
+    }
   },
   "components": [
     {
-      "id": "admin",
+      "id": "client",
       "type": "external",
-      "label": "DevOps / SRE",
-      "sublabel": "HTTP REST Client",
-      "pos": [50, 240],
-      "size": [130, 64]
+      "label": "SRE Operator",
+      "sublabel": "HTTP client",
+      "pos": [35, 230],
+      "size": [115, 60],
+      "sources": [
+        { "path": "scripts/demo_run.sh", "line": 1, "end_line": 35, "label": "demo client script" }
+      ]
     },
     {
       "id": "router",
       "type": "backend",
       "label": "Go REST API",
-      "sublabel": "gorilla/mux :8080",
-      "pos": [300, 240],
-      "size": [140, 64],
-      "tag": "Bearer Auth"
+      "sublabel": ":8080 mux",
+      "pos": [220, 230],
+      "size": [120, 60],
+      "tag": "Request ID",
+      "sources": [
+        { "path": "internal/server/api.go", "line": 30, "end_line": 80, "label": "HTTP routing & middleware" }
+      ]
     },
     {
-      "id": "kmod_exec",
-      "type": "backend",
-      "label": "Module Manager",
-      "sublabel": "modprobe / rmmod",
-      "pos": [300, 60],
-      "size": [140, 64]
+      "id": "auth_guard",
+      "type": "security",
+      "label": "Policy Guard",
+      "sublabel": "tokens & rules",
+      "pos": [220, 80],
+      "size": [120, 60],
+      "tag": "Fail-Closed",
+      "sources": [
+        { "path": "internal/server/api.go", "line": 130, "end_line": 170, "label": "constant-time auth" },
+        { "path": "modules/policy.go", "line": 30, "end_line": 80, "label": "module allowlist" }
+      ]
     },
     {
       "id": "collector",
       "type": "backend",
-      "label": "Diagnostic Collector",
-      "sublabel": "modules.Diagnose() [Redaction & Demo]",
-      "pos": [550, 240],
-      "size": [150, 64]
+      "label": "Collector",
+      "sublabel": "host telemetry",
+      "pos": [415, 230],
+      "size": [125, 60],
+      "tag": "DEMO_MODE",
+      "sources": [
+        { "path": "modules/diagnostics.go", "line": 20, "end_line": 65, "label": "live command collector" },
+        { "path": "modules/demo.go", "line": 15, "end_line": 55, "label": "canned JSON fixtures" }
+      ]
     },
     {
-      "id": "linux_kernel",
+      "id": "redactor",
+      "type": "security",
+      "label": "Redactor",
+      "sublabel": "scrub secrets",
+      "pos": [415, 380],
+      "size": [125, 60],
+      "tag": "Regex Scrub",
+      "sources": [
+        { "path": "modules/redact.go", "line": 15, "end_line": 50, "label": "regex redaction rules" }
+      ]
+    },
+    {
+      "id": "audit_sink",
+      "type": "backend",
+      "label": "Audit Logger",
+      "sublabel": "append-only log",
+      "pos": [220, 380],
+      "size": [120, 60],
+      "sources": [
+        { "path": "internal/server/audit.go", "line": 20, "end_line": 60, "label": "structured audit recorder" }
+      ]
+    },
+    {
+      "id": "kernel_mod",
       "type": "external",
       "label": "Linux Kernel",
-      "sublabel": "kmod / sysfs / procfs",
-      "pos": [550, 60],
-      "size": [150, 64]
+      "sublabel": "kmod / sysfs",
+      "pos": [415, 80],
+      "size": [125, 60],
+      "tag": "CAP_SYS_MOD",
+      "sources": [
+        { "path": "modules/module_manager.go", "line": 15, "end_line": 38, "label": "modprobe / rmmod executor" }
+      ]
     },
     {
-      "id": "ai_router",
+      "id": "ai_ingress",
       "type": "backend",
-      "label": "FastAPI Service",
-      "sublabel": "uvicorn :8001 /analyze",
-      "pos": [820, 240],
-      "size": [150, 64],
-      "tag": "Cache & Cost"
+      "label": "FastAPI App",
+      "sublabel": ":8001 /analyze",
+      "pos": [615, 230],
+      "size": [125, 60],
+      "tag": "Bearer Auth",
+      "sources": [
+        { "path": "ai_service/kernel_diagnostic_ai/main.py", "line": 25, "end_line": 70, "label": "FastAPI routes & token auth" }
+      ]
     },
     {
-      "id": "rag_service",
-      "type": "backend",
-      "label": "Hybrid RAG Engine",
-      "sublabel": "BM25 + Vector (RRF)",
-      "pos": [820, 420],
-      "size": [150, 64]
-    },
-    {
-      "id": "vector_db",
+      "id": "response_cache",
       "type": "database",
-      "label": "ChromaDB Store",
-      "sublabel": "26 Curated Docs",
-      "pos": [820, 580],
-      "size": [150, 64],
-      "tag": "Cosine Index"
+      "label": "Response Cache",
+      "sublabel": "SHA-256 (5m TTL)",
+      "pos": [615, 80],
+      "size": [125, 60],
+      "tag": "<1ms Hit",
+      "sources": [
+        { "path": "ai_service/kernel_diagnostic_ai/services/cache.py", "line": 15, "end_line": 60, "label": "SHA-256 TTL cache" }
+      ]
     },
     {
-      "id": "embedder",
+      "id": "hybrid_rag",
       "type": "backend",
-      "label": "Sentence Embedder",
-      "sublabel": "all-MiniLM-L6-v2",
-      "pos": [1080, 580],
-      "size": [150, 64]
+      "label": "Hybrid RAG",
+      "sublabel": "BM25 + Dense RRF",
+      "pos": [815, 230],
+      "size": [125, 60],
+      "tag": "Top-5 Chunks",
+      "sources": [
+        { "path": "ai_service/kernel_diagnostic_ai/services/rag_service.py", "line": 25, "end_line": 85, "label": "BM25 + ChromaDB RRF merger" },
+        { "path": "ai_service/kernel_diagnostic_ai/rag/bm25.py", "line": 20, "end_line": 75, "label": "lexical BM25 search" }
+      ]
+    },
+    {
+      "id": "vector_store",
+      "type": "database",
+      "label": "ChromaDB",
+      "sublabel": "26 kernel docs",
+      "pos": [815, 380],
+      "size": [125, 60],
+      "tag": "MiniLM-L6",
+      "sources": [
+        { "path": "ai_service/kernel_diagnostic_ai/rag/store.py", "line": 25, "end_line": 80, "label": "dense embedding query" }
+      ]
     },
     {
       "id": "llm_client",
       "type": "backend",
-      "label": "LLM Client & Safety",
-      "sublabel": "Async httpx + Retries",
-      "pos": [1080, 240],
-      "size": [140, 64],
-      "tag": "Safety Filter"
+      "label": "LLM Client",
+      "sublabel": "httpx + 3x retry",
+      "pos": [1015, 230],
+      "size": [120, 60],
+      "tag": "Fallback Mode",
+      "sources": [
+        { "path": "ai_service/kernel_diagnostic_ai/services/llm_client.py", "line": 30, "end_line": 100, "label": "retry logic & fallback" }
+      ]
     },
-
     {
-      "id": "llm_provider",
+      "id": "safety_filter",
+      "type": "security",
+      "label": "Safety Filter",
+      "sublabel": "blocks cmd inj",
+      "pos": [1015, 380],
+      "size": [120, 60],
+      "tag": "Egress Gate",
+      "sources": [
+        { "path": "ai_service/kernel_diagnostic_ai/services/safety.py", "line": 15, "end_line": 55, "label": "regex command safety gate" }
+      ]
+    },
+    {
+      "id": "cloud_llm",
       "type": "cloud",
-      "label": "LLM API Provider",
+      "label": "LLM Provider",
       "sublabel": "OpenAI / Groq",
-      "pos": [1360, 240],
-      "size": [140, 64],
-      "tag": "ChatCompletions"
+      "pos": [1015, 80],
+      "size": [120, 60],
+      "tag": "Completions",
+      "sources": [
+        { "path": "ai_service/kernel_diagnostic_ai/services/llm_client.py", "line": 65, "end_line": 115, "label": "chat completion request" }
+      ]
     }
   ],
   "boundaries": [
     {
       "kind": "region",
-      "label": "Host Environment (Go Service)",
-      "wraps": ["router", "kmod_exec", "collector", "linux_kernel"]
+      "label": "Linux Host Daemon (Go :8080 - CAP_SYS_MODULE)",
+      "wraps": ["router", "auth_guard", "collector", "redactor", "audit_sink", "kernel_mod"]
     },
     {
       "kind": "region",
-      "label": "AI Microservice Container",
-      "wraps": ["ai_router", "rag_service", "vector_db", "embedder", "llm_client"]
+      "label": "AI Microservice (Python :8001 - Sandboxed)",
+      "wraps": ["ai_ingress", "response_cache", "hybrid_rag", "vector_store", "llm_client", "safety_filter"]
     },
     {
       "kind": "security-group",
-      "label": "Cloud AI Provider",
-      "wraps": ["llm_provider"]
+      "label": "Cloud Intelligence Boundary",
+      "wraps": ["cloud_llm"]
     }
   ],
   "connections": [
     {
-      "id": "req-diagnose",
-      "from": "admin",
+      "id": "conn_client_router",
+      "from": "client",
       "to": "router",
-      "label": "POST /diagnose",
+      "label": "diagnose",
       "variant": "emphasis"
     },
     {
-      "id": "call-diagnose",
+      "id": "conn_router_auth",
       "from": "router",
-      "to": "collector",
-      "label": "gather evidence",
-      "variant": "emphasis"
+      "to": "auth_guard",
+      "label": "verify",
+      "variant": "security"
     },
     {
-      "id": "exec-diag-commands",
-      "from": "collector",
-      "to": "linux_kernel",
-      "label": "uname / dmesg / lsmod"
-    },
-    {
-      "id": "route-mod-op",
-      "from": "router",
-      "to": "kmod_exec",
-      "label": "load / unload",
+      "id": "conn_auth_kernel",
+      "from": "auth_guard",
+      "to": "kernel_mod",
+      "label": "exec modprobe",
       "variant": "dashed"
     },
     {
-      "id": "exec-kmod",
-      "from": "kmod_exec",
-      "to": "linux_kernel",
-      "label": "modprobe / rmmod"
+      "id": "conn_router_collector",
+      "from": "router",
+      "to": "collector",
+      "label": "collect",
+      "variant": "emphasis"
     },
     {
-      "id": "forward-evidence",
+      "id": "conn_collector_redactor",
       "from": "collector",
-      "to": "ai_router",
-      "label": "POST /analyze",
+      "to": "redactor",
+      "label": "sanitize",
+      "variant": "security"
+    },
+    {
+      "id": "conn_router_audit",
+      "from": "router",
+      "to": "audit_sink",
+      "label": "audit log",
+      "variant": "dashed"
+    },
+    {
+      "id": "conn_redactor_ai",
+      "from": "redactor",
+      "to": "ai_ingress",
+      "label": "analyze",
       "variant": "emphasis"
     },
     {
-      "id": "query-rag",
-      "from": "ai_router",
-      "to": "rag_service",
-      "label": "retrieve context",
+      "id": "conn_ai_cache",
+      "from": "ai_ingress",
+      "to": "response_cache",
+      "label": "cache check",
+      "variant": "dashed"
+    },
+    {
+      "id": "conn_ai_rag",
+      "from": "ai_ingress",
+      "to": "hybrid_rag",
+      "label": "retrieve",
       "variant": "emphasis"
     },
     {
-      "id": "embed-evidence",
-      "from": "rag_service",
-      "to": "embedder",
-      "label": "embed query"
-    },
-    {
-      "id": "search-docs",
-      "from": "rag_service",
-      "to": "vector_db",
-      "label": "similarity search",
+      "id": "conn_rag_store",
+      "from": "hybrid_rag",
+      "to": "vector_store",
+      "label": "vector search",
       "variant": "emphasis"
     },
     {
-      "id": "pass-vector",
-      "from": "embedder",
-      "to": "vector_db",
-      "label": "query vector"
-    },
-    {
-      "id": "invoke-llm",
-      "from": "ai_router",
+      "id": "conn_ai_llm",
+      "from": "ai_ingress",
       "to": "llm_client",
-      "label": "evidence + docs",
+      "label": "prompt",
       "variant": "emphasis"
     },
     {
-      "id": "cloud-completion",
+      "id": "conn_llm_cloud",
       "from": "llm_client",
-      "to": "llm_provider",
-      "label": "HTTPS completions",
+      "to": "cloud_llm",
+      "label": "completions",
       "variant": "emphasis"
+    },
+    {
+      "id": "conn_llm_safety",
+      "from": "llm_client",
+      "to": "safety_filter",
+      "label": "scan output",
+      "variant": "security"
     }
   ],
   "cards": [
     {
       "dot": "cyan",
-      "title": "Host Management Tier",
+      "title": "Defense in Depth",
       "items": [
-        "Go REST API guards /module operations with Bearer token authentication",
-        "Executes read-only Linux diagnostic commands (uname, lsmod, modinfo, dmesg, journalctl)",
-        "Platform boundary: live kernel operations run on Linux hosts"
+        "Go daemon runs with ambient CAP_SYS_MODULE without requiring full root",
+        "Module allowlist and critical driver denylist guard against accidental storage/filesystem driver unloading",
+        "Pre-egress regex sanitization scrubs IPs, MACs, hostnames, and secrets from telemetry"
       ]
     },
     {
       "dot": "emerald",
-      "title": "Diagnostic RAG Pipeline",
+      "title": "Hybrid Retrieval Engine",
       "items": [
-        "ChromaDB stores curated Linux kernel documentation chunks",
-        "Sentence-Transformers (all-MiniLM-L6-v2) generates 384-d semantic embeddings",
-        "Retrieval query built dynamically from error traces and module metadata"
+        "Combines lexical BM25 exact error matching with ChromaDB 384-d dense embeddings",
+        "Reciprocal Rank Fusion (RRF) prioritizes exact kernel errors like Unknown symbol and Key not available",
+        "26 original Markdown docs with source URLs ground all LLM reasoning"
       ]
     },
     {
       "dot": "violet",
-      "title": "AI Inference & Security",
+      "title": "Operational Observability",
       "items": [
-        "FastAPI orchestrates async LLM inference via OpenAI/Groq compatible API",
-        "Strict JSON schema enforcement with Pydantic validation",
-        "Read-only advisory: AI never executes shell or kernel commands directly"
+        "X-Request-ID propagation links Go host calls to Python AI inference spans",
+        "Per-stage latency tracking (collect, retrieve, LLM, validate) and token cost estimation",
+        "SHA-256 fingerprint response cache delivers sub-millisecond responses on duplicate errors"
       ]
     }
   ]

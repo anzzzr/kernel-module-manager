@@ -2,7 +2,7 @@
 
 This document details the empirically measured latency breakdown, token consumption, caching efficiency, and cost profiles of `kernel-module-manager` across evaluation and operational workloads.
 
-All figures presented below derive directly from reproducible benchmark runs recorded in [`eval/RESULTS.md`](eval/RESULTS.md).
+All figures presented below derive directly from reproducible benchmark runs recorded in [`eval/RESULTS.md`](../eval/RESULTS.md).
 
 ---
 

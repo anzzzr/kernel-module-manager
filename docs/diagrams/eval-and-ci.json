@@ -1,0 +1,228 @@
+{
+  "schema_version": 2,
+  "diagram_type": "workflow",
+  "meta": {
+    "title": "Kernel Diagnostic Evaluation & CI Quality Gates",
+    "subtitle": "46-case benchmark harness across three RAG modes and automated GitHub Actions verification",
+    "output": "docs/diagrams/eval-and-ci.html",
+    "viewBox": [1120, 680],
+    "animation": "trace",
+    "visual_preset": "signal-flow",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/anzzzr/kernel-module-manager",
+      "revision": "33afc431234b80a6046093b899f04f21e766ad35"
+    }
+  },
+  "lanes": [
+    { "id": "eval_lane", "label": "Evaluation Harness" },
+    { "id": "ci_lane", "label": "GitHub Actions CI" },
+    { "id": "policy_lane", "label": "Release Gate", "variant": "exception" }
+  ],
+  "phases": [
+    { "id": "intake_phase", "label": "Test Cases", "fromCol": 0, "toCol": 1 },
+    { "id": "exec_phase", "label": "Execution & Checks", "fromCol": 2, "toCol": 3, "variant": "emphasis" },
+    { "id": "audit_phase", "label": "Metrics & Audit", "fromCol": 4, "toCol": 5, "variant": "emphasis" }
+  ],
+  "groups": [
+    { "id": "grp_eval", "label": "Benchmark Suite", "lane": "eval_lane", "fromCol": 0, "toCol": 5, "variant": "emphasis" },
+    { "id": "grp_ci", "label": "Automated Workflows", "lane": "ci_lane", "fromCol": 0, "toCol": 5, "variant": "default" },
+    { "id": "grp_gate", "label": "Regression Protection", "lane": "policy_lane", "fromCol": 4, "toCol": 5, "variant": "security" }
+  ],
+  "mainPath": [
+    "case_corpus",
+    "eval_harness",
+    "metrics_engine",
+    "results_table",
+    "merge_gate"
+  ],
+  "nodes": [
+    {
+      "id": "case_corpus",
+      "lane": "eval_lane",
+      "col": 0,
+      "type": "database",
+      "label": "46 Eval Cases",
+      "sublabel": "8 fault categories",
+      "tag": "Ground Truth",
+      "width": 136,
+      "sources": [
+        { "path": "eval/cases/case_01_vermagic_nvidia.json", "line": 1, "end_line": 25, "label": "JSON eval case" }
+      ]
+    },
+    {
+      "id": "eval_harness",
+      "lane": "eval_lane",
+      "col": 2,
+      "type": "backend",
+      "label": "run_eval.py",
+      "sublabel": "no_rag / rag / full",
+      "tag": "Offline Pipeline",
+      "width": 136,
+      "sources": [
+        { "path": "eval/run_eval.py", "line": 40, "end_line": 150, "label": "eval harness" }
+      ]
+    },
+    {
+      "id": "metrics_engine",
+      "lane": "eval_lane",
+      "col": 3,
+      "type": "backend",
+      "label": "Metrics Engine",
+      "sublabel": "recall@k, MRR, acc",
+      "tag": "Coverage & Acc",
+      "width": 136,
+      "sources": [
+        { "path": "eval/metrics.py", "line": 15, "end_line": 80, "label": "metric math" }
+      ]
+    },
+    {
+      "id": "results_table",
+      "lane": "eval_lane",
+      "col": 5,
+      "type": "frontend",
+      "label": "RESULTS.md",
+      "sublabel": "authoritative table",
+      "tag": "Reproducible",
+      "width": 136,
+      "sources": [
+        { "path": "eval/RESULTS.md", "line": 1, "end_line": 50, "label": "benchmark scores" }
+      ]
+    },
+    {
+      "id": "go_ci_job",
+      "lane": "ci_lane",
+      "col": 1,
+      "type": "security",
+      "label": "Go Test & Audit",
+      "sublabel": "race + vet + policy",
+      "tag": "Unit & Sec Tests",
+      "width": 136,
+      "sources": [
+        { "path": ".github/workflows/ci.yml", "line": 12, "end_line": 28, "label": "Go CI job" }
+      ]
+    },
+    {
+      "id": "python_ci_job",
+      "lane": "ci_lane",
+      "col": 2,
+      "type": "backend",
+      "label": "Python CI Job",
+      "sublabel": "ruff + pytest",
+      "tag": "Linters & Mocks",
+      "width": 136,
+      "sources": [
+        { "path": ".github/workflows/ci.yml", "line": 30, "end_line": 52, "label": "Python CI job" }
+      ]
+    },
+    {
+      "id": "eval_smoke_job",
+      "lane": "ci_lane",
+      "col": 4,
+      "type": "backend",
+      "label": "RAG Eval Smoke",
+      "sublabel": "mock LLM run",
+      "tag": "Zero Secrets",
+      "width": 136,
+      "sources": [
+        { "path": ".github/workflows/ci.yml", "line": 54, "end_line": 75, "label": "Smoke test job" }
+      ]
+    },
+    {
+      "id": "merge_gate",
+      "lane": "policy_lane",
+      "col": 5,
+      "type": "security",
+      "label": "CI Merge Gate",
+      "sublabel": "all green checks",
+      "tag": "Protected Main",
+      "width": 136,
+      "sources": [
+        { "path": ".github/workflows/ci.yml", "line": 1, "end_line": 20, "label": "CI triggers" }
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "id": "edge_cases_harness",
+      "from": "case_corpus",
+      "to": "eval_harness",
+      "label": "load evidence",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "edge_harness_metrics",
+      "from": "eval_harness",
+      "to": "metrics_engine",
+      "label": "predictions",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "edge_metrics_results",
+      "from": "metrics_engine",
+      "to": "results_table",
+      "label": "scored ledger",
+      "variant": "emphasis",
+      "role": "main"
+    },
+    {
+      "id": "edge_go_python",
+      "from": "go_ci_job",
+      "to": "python_ci_job",
+      "label": "test matrix",
+      "variant": "default"
+    },
+    {
+      "id": "edge_python_smoke",
+      "from": "python_ci_job",
+      "to": "eval_smoke_job",
+      "label": "smoke test",
+      "variant": "emphasis"
+    },
+    {
+      "id": "edge_smoke_gate",
+      "from": "eval_smoke_job",
+      "to": "merge_gate",
+      "label": "all pass",
+      "variant": "security"
+    },
+    {
+      "id": "edge_results_gate",
+      "from": "results_table",
+      "to": "merge_gate",
+      "label": "verify audit",
+      "variant": "dashed"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Evaluation Dataset",
+      "items": [
+        "46 realistic test cases covering 8 kernel failure categories plus healthy and noisy samples",
+        "Includes gold root causes, gold diagnostic keywords, and authoritative document citations",
+        "Fully reproducible locally with no root privileges or live Linux kernel VM required"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Ablation Benchmark",
+      "items": [
+        "Evaluates three execution pipelines: no_rag (zero docs), rag (hybrid top-k), and full_docs",
+        "Tracks retrieval quality (Recall@k, MRR) and diagnosis quality (category accuracy, keyword coverage)",
+        "Measures cost and latency trade-offs: RAG achieves 92.4% accuracy at 1/15th the token cost of full context"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Continuous Integration",
+      "items": [
+        "GitHub Actions runs Go unit tests with race detection and constant-time auth verification",
+        "Python suite runs ruff linter and pytest tests for degraded mode, caching, and safety gates",
+        "Mocked LLM smoke test executes evaluation pipeline offline on every commit without secrets"
+      ]
+    }
+  ]
+}

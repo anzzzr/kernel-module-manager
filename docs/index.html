@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Kernel Module Manager & AI Diagnostic Architecture Diagrams</title>
+  <style>
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      max-width: 900px;
+      margin: 40px auto;
+      padding: 0 20px;
+      background: #0d1117;
+      color: #c9d1d9;
+    }
+    h1 {
+      color: #58a6ff;
+      border-bottom: 1px solid #30363d;
+      padding-bottom: 12px;
+    }
+    p {
+      color: #8b949e;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+      gap: 20px;
+      margin-top: 30px;
+    }
+    .card {
+      background: #161b22;
+      border: 1px solid #30363d;
+      border-radius: 8px;
+      padding: 20px;
+      transition: border-color 0.2s, transform 0.2s;
+    }
+    .card:hover {
+      border-color: #58a6ff;
+      transform: translateY(-2px);
+    }
+    .card h2 {
+      margin-top: 0;
+      font-size: 1.25rem;
+      color: #f0f6fc;
+    }
+    .card p {
+      font-size: 0.95rem;
+      margin-bottom: 16px;
+    }
+    .card a {
+      display: inline-block;
+      background: #238636;
+      color: #ffffff;
+      padding: 8px 16px;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: 500;
+    }
+    .card a:hover {
+      background: #2ea043;
+    }
+    .badge {
+      display: inline-block;
+      font-size: 0.75rem;
+      padding: 2px 8px;
+      border-radius: 12px;
+      background: #21262d;
+      color: #79c0ff;
+      border: 1px solid #388bfd33;
+      margin-bottom: 10px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Kernel Module Manager & AI Diagnostics</h1>
+  <p>Interactive, revision-pinned system diagrams generated with <a href="https://github.com/tt-a1i/archify" style="color: #58a6ff;">Archify</a>.</p>
+
+  <div class="grid">
+    <div class="card">
+      <span class="badge">Architecture</span>
+      <h2>System Architecture</h2>
+      <p>Runtime architecture mapping Go host daemon boundaries, Python FastAPI microservice, hybrid RAG retriever, and external LLM provider.</p>
+      <a href="diagrams/architecture.html">Open Interactive Diagram &rarr;</a>
+    </div>
+
+    <div class="card">
+      <span class="badge">Sequence</span>
+      <h2>POST /diagnose Sequence</h2>
+      <p>End-to-end request lifecycle showing token validation, evidence redaction, SHA-256 fingerprint caching, RRF retrieval, and safety scanning.</p>
+      <a href="diagrams/diagnose-sequence.html">Open Interactive Diagram &rarr;</a>
+    </div>
+
+    <div class="card">
+      <span class="badge">Data Flow</span>
+      <h2>Security Data Pipeline</h2>
+      <p>Telemetry flow through regex sanitization, prompt injection delimiters, hybrid RAG context, and egress command safety filters.</p>
+      <a href="diagrams/security-dataflow.html">Open Interactive Diagram &rarr;</a>
+    </div>
+
+    <div class="card">
+      <span class="badge">Workflow</span>
+      <h2>Evaluation & CI Quality Gates</h2>
+      <p>46-case offline evaluation harness and GitHub Actions CI matrix enforcing race checks, linter rules, and smoke tests.</p>
+      <a href="diagrams/eval-and-ci.html">Open Interactive Diagram &rarr;</a>
+    </div>
+  </div>
+</body>
+</html>

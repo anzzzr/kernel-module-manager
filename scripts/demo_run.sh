@@ -29,7 +29,7 @@ export RAG_ENABLED=true
 export LLM_API_KEY="mock-key"
 
 echo -e "\n${YELLOW}[1/4] Starting Python AI Microservice (port 8001)...${NC}"
-python3 -m uvicorn kernel_diagnostic_ai.main:app --port 8001 --host 127.0.0.1 > /tmp/kmm_ai_service.log 2>&1 &
+PYTHONPATH=ai_service python3 -m uvicorn kernel_diagnostic_ai.main:app --port 8001 --host 127.0.0.1 > /tmp/kmm_ai_service.log 2>&1 &
 AI_PID=$!
 
 echo -e "${YELLOW}[2/4] Starting Go Diagnostic Host Daemon (port 8080)...${NC}"
