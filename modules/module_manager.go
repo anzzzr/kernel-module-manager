@@ -9,6 +9,10 @@ import (
 // LoadModule uses modprobe to load a kernel module
 
 func LoadModule(moduleName string) error {
+	if IsDemoMode() {
+		log.Printf("[DEMO MODE] Simulating module load: %s", moduleName)
+		return nil
+	}
 	cmd := exec.Command("modprobe", moduleName)
 	output, err := cmd.CombinedOutput()
 	if err != nil {
@@ -21,6 +25,10 @@ func LoadModule(moduleName string) error {
 
 // UnloadModule uses rmmod to remove a kernel module
 func UnloadModule(moduleName string) error {
+	if IsDemoMode() {
+		log.Printf("[DEMO MODE] Simulating module unload: %s", moduleName)
+		return nil
+	}
 	cmd := exec.Command("rmmod", moduleName)
 	err := cmd.Run()
 	if err != nil {
@@ -29,3 +37,4 @@ func UnloadModule(moduleName string) error {
 	fmt.Println("Module unloaded:", moduleName)
 	return nil
 }
+

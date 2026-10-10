@@ -1,0 +1,41 @@
+# Kernel Module Manager Security Policy
+# Specifies allowed modules and critical protected modules.
+
+# If deny_by_default is true, ONLY modules in allowed_modules can be loaded/unloaded/diagnosed.
+# If false, any module not in critical_denylist can be acted upon.
+deny_by_default: false
+
+# Allowed modules for explicit allowlisting (if deny_by_default is enabled)
+allowed_modules:
+  - nvidia
+  - nvidia_modeset
+  - nvidia_uvm
+  - nvidia_drm
+  - loop
+  - overlay
+  - wireguard
+  - vboxguest
+  - vboxdrv
+  - e1000e
+  - r8169
+  - btusb
+
+# Critical core drivers and subsystems that can NEVER be unloaded via API
+critical_denylist:
+  # Root filesystems & block storage
+  - ext4
+  - btrfs
+  - xfs
+  - vfat
+  - zfs
+  - nvme
+  - nvme_core
+  - ahci
+  - libahci
+  - sd_mod
+  - dm_mod
+  # Essential core network stack
+  - loopback
+  - tcp_bbr
+  # Hardware system infrastructure
+  - systemd

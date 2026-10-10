@@ -1,12 +1,10 @@
 """Tests for the LLM client."""
 
 import json
-from unittest.mock import patch, AsyncMock, MagicMock
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
-import httpx
-
-from kernel_diagnostic_ai.services.llm_client import call_llm, SYSTEM_PROMPT
+from kernel_diagnostic_ai.services.llm_client import SYSTEM_PROMPT, call_llm
 
 
 class TestCallLLM:
@@ -106,7 +104,8 @@ class TestCallLLM:
         mock_client_instance.__aexit__ = AsyncMock(return_value=False)
 
         with patch("kernel_diagnostic_ai.services.llm_client.httpx.AsyncClient", return_value=mock_client_instance):
-            result = await call_llm('{"module":"test"}', rag_context="Relevant docs here")
+            await call_llm('{"module":"test"}', rag_context="Relevant docs here")
+
 
         # Check that the request included the RAG context
         call_args = mock_client_instance.post.call_args

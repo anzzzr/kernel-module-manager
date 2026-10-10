@@ -1,0 +1,14 @@
+{
+  "module": "unknown_module",
+  "commands": {
+    "uname": "6.8.0-40-generic",
+    "lsmod": "Module                  Size  Used by\n",
+    "modinfo": "",
+    "dmesg": "[  200.102910] modprobe: module not found",
+    "journalctl": "modprobe[102]: FATAL: Module not found",
+    "modprobe_deps": ""
+  },
+  "errors": {
+    "modprobe": "modprobe: FATAL: Module not found in directory /lib/modules/6.8.0-40-generic"
+  }
+}

@@ -20,6 +20,7 @@ class DiagnosisResult(BaseModel):
     evidence_used: list[str]
     uncertainty: str
     documentation_references: list[str] = Field(default_factory=list)
+    safety_flags: list[str] = Field(default_factory=list)
 
 
 class AnalyzeResponse(BaseModel):
@@ -29,3 +30,6 @@ class AnalyzeResponse(BaseModel):
     evidence: dict
     ai_analysis: DiagnosisResult
     rag_context_used: bool = False
+    safety_flags: list[str] = Field(default_factory=list)
+    ai_status: str = "available"
+

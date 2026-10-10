@@ -1,0 +1,35 @@
+{
+  "id": "case_37_dkms_missing_kernel_headers",
+  "module": "vboxguest",
+  "category": "DKMS build failure",
+  "evidence": {
+    "module": "vboxguest",
+    "commands": {
+      "uname": "6.5.0-28-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "modinfo: ERROR: Module vboxguest not found.",
+      "dmesg": "",
+      "journalctl": "dkms[1105]: Error! Your kernel headers for kernel 6.5.0-28-generic cannot be found at /lib/modules/6.5.0-28-generic/build or /lib/modules/6.5.0-28-generic/source.",
+      "modprobe_deps": "",
+      "loaded_check": ""
+    },
+    "errors": {
+      "dkms": "kernel headers not found",
+      "modprobe": "modprobe: FATAL: Module vboxguest not found"
+    }
+  },
+  "gold_root_cause_category": "DKMS build failure",
+  "gold_keywords": [
+    "kernel headers",
+    "linux-headers",
+    "dkms",
+    "build",
+    "/lib/modules",
+    "source"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "nvidia_troubleshooting.md"
+  ],
+  "source_type": "synthetic"
+}

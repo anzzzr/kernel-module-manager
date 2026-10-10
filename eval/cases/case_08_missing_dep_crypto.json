@@ -1,0 +1,33 @@
+{
+  "id": "case_08_missing_dep_crypto",
+  "module": "aesni_intel",
+  "category": "missing dependency",
+  "evidence": {
+    "module": "aesni_intel",
+    "commands": {
+      "uname": "5.15.0-72-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/5.15.0-72-generic/kernel/arch/x86/crypto/aesni-intel.ko\ndepends:        crypto_simd,cryptd\n",
+      "dmesg": "[   19.001923] aesni_intel: Unknown symbol crypto_simd_usable (err -2)",
+      "journalctl": "systemd[1]: cryptsetup failed because aesni_intel missing crypto_simd dependency",
+      "modprobe_deps": "insmod /lib/modules/5.15.0-72-generic/kernel/crypto/cryptd.ko\ninsmod /lib/modules/5.15.0-72-generic/kernel/crypto/crypto_simd.ko\ninsmod /lib/modules/5.15.0-72-generic/kernel/arch/x86/crypto/aesni-intel.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'aesni_intel': Unknown symbol in module"
+    }
+  },
+  "gold_root_cause_category": "missing dependency",
+  "gold_keywords": [
+    "dependency",
+    "crypto_simd",
+    "cryptd",
+    "depends",
+    "modprobe"
+  ],
+  "gold_doc_sources": [
+    "module_dependencies.md",
+    "modprobe.md"
+  ],
+  "source_type": "synthetic"
+}

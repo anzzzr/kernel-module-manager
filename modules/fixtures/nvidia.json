@@ -1,0 +1,14 @@
+{
+  "module": "nvidia",
+  "commands": {
+    "uname": "6.8.0-40-generic",
+    "lsmod": "Module                  Size  Used by\nnvme                   61440  4\n",
+    "modinfo": "filename:       /lib/modules/6.5.0-28-generic/updates/dkms/nvidia.ko\nversion:        535.183.01\nvermagic:       6.5.0-28-generic SMP preempt mod_unload modversions\ndepends:        nvidia-modeset\n",
+    "dmesg": "[  124.512014] nvidia: version magic '6.5.0-28-generic SMP preempt mod_unload modversions' should be '6.8.0-40-generic SMP preempt mod_unload modversions'\n[  124.512028] nvidia: disagrees about version of symbol module_layout",
+    "journalctl": "systemd-modules-load[412]: Failed to insert module 'nvidia': Exec format error",
+    "modprobe_deps": "insmod /lib/modules/6.5.0-28-generic/updates/dkms/nvidia.ko"
+  },
+  "errors": {
+    "modprobe": "modprobe: ERROR: could not insert 'nvidia': Exec format error"
+  }
+}

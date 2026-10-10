@@ -1,0 +1,33 @@
+{
+  "id": "case_18_missing_fw_ath10k",
+  "module": "ath10k_pci",
+  "category": "missing firmware",
+  "evidence": {
+    "module": "ath10k_pci",
+    "commands": {
+      "uname": "5.15.0-48-generic",
+      "lsmod": "Module                  Size  Used by\nath10k_core           483328  0\n",
+      "modinfo": "filename:       /lib/modules/5.15.0-48-generic/kernel/drivers/net/wireless/ath/ath10k/ath10k_pci.ko\ndepends:        ath10k_core\n",
+      "dmesg": "[    5.981023] ath10k_pci 0000:02:00.0: Direct firmware load for ath10k/QCA6174/hw3.0/firmware-6.bin failed with error -2\n[    5.981035] ath10k_pci 0000:02:00.0: could not fetch firmware files (-2)",
+      "journalctl": "kernel: ath10k_pci: could not fetch firmware files (-2)",
+      "modprobe_deps": "insmod /lib/modules/5.15.0-48-generic/kernel/drivers/net/wireless/ath/ath10k/ath10k_pci.ko",
+      "loaded_check": "ath10k_pci             49152  0"
+    },
+    "errors": {
+      "dmesg": "Direct firmware load for ath10k/QCA6174/hw3.0/firmware-6.bin failed with error -2"
+    }
+  },
+  "gold_root_cause_category": "missing firmware",
+  "gold_keywords": [
+    "firmware",
+    "failed with error -2",
+    "/lib/firmware",
+    "ath10k",
+    "package linux-firmware"
+  ],
+  "gold_doc_sources": [
+    "common_errors.md",
+    "kernel_modules.md"
+  ],
+  "source_type": "synthetic"
+}

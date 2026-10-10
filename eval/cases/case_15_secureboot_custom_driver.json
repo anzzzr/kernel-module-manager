@@ -1,0 +1,32 @@
+{
+  "id": "case_15_secureboot_custom_driver",
+  "module": "my_pci_driver",
+  "category": "Secure Boot signature rejection",
+  "evidence": {
+    "module": "my_pci_driver",
+    "commands": {
+      "uname": "6.8.0-31-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/6.8.0-31-generic/extra/my_pci_driver.ko\n",
+      "dmesg": "[    9.192014] Lockdown: modprobe: unsigned module loading is restricted; see man kernel_lockdown.7",
+      "journalctl": "kernel: Loading of unsigned module is rejected",
+      "modprobe_deps": "insmod /lib/modules/6.8.0-31-generic/extra/my_pci_driver.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'my_pci_driver': Operation not permitted"
+    }
+  },
+  "gold_root_cause_category": "Secure Boot signature rejection",
+  "gold_keywords": [
+    "Lockdown",
+    "kernel_lockdown",
+    "unsigned module",
+    "Secure Boot"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

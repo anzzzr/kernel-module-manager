@@ -1,0 +1,32 @@
+{
+  "id": "case_07_missing_dep_overlay",
+  "module": "overlay",
+  "category": "missing dependency",
+  "evidence": {
+    "module": "overlay",
+    "commands": {
+      "uname": "5.10.0-8-amd64",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/5.10.0-8-amd64/kernel/fs/overlayfs/overlay.ko\ndepends:        \n",
+      "dmesg": "",
+      "journalctl": "dockerd[1204]: failed to start daemon: error initializing graphdriver: overlay2: failed to mount overlay: no such device",
+      "modprobe_deps": "/lib/modules/5.10.0-8-amd64/modules.dep: No such file or directory",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: FATAL: Module overlay not found in directory /lib/modules/5.10.0-8-amd64"
+    }
+  },
+  "gold_root_cause_category": "missing dependency",
+  "gold_keywords": [
+    "modules.dep",
+    "depmod",
+    "module not found",
+    "dependency list"
+  ],
+  "gold_doc_sources": [
+    "modprobe.md",
+    "module_dependencies.md"
+  ],
+  "source_type": "synthetic"
+}

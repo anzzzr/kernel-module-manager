@@ -1,0 +1,30 @@
+{
+  "id": "case_41_healthy_e1000e",
+  "module": "e1000e",
+  "category": "healthy module",
+  "evidence": {
+    "module": "e1000e",
+    "commands": {
+      "uname": "5.15.0-91-generic",
+      "lsmod": "Module                  Size  Used by\ne1000e                327680  0\nptp                    32768  1 e1000e\n",
+      "modinfo": "filename:       /lib/modules/5.15.0-91-generic/kernel/drivers/net/ethernet/intel/e1000e/e1000e.ko\nvermagic:       5.15.0-91-generic SMP mod_unload \ndepends:        ptp\n",
+      "dmesg": "[    3.102391] e1000e: Intel(R) PRO/1000 Network Driver\n[    3.102401] e1000e 0000:00:1f.6 eth0: (PCI Express:2.5GT/s:Width x1) 00:15:5d:01:02:03",
+      "journalctl": "systemd-networkd: eth0: Link UP",
+      "modprobe_deps": "insmod /lib/modules/5.15.0-91-generic/kernel/drivers/ptp/ptp.ko\ninsmod /lib/modules/5.15.0-91-generic/kernel/drivers/net/ethernet/intel/e1000e/e1000e.ko",
+      "loaded_check": "e1000e                327680  0"
+    },
+    "errors": {}
+  },
+  "gold_root_cause_category": "healthy module",
+  "gold_keywords": [
+    "healthy",
+    "normal",
+    "no error",
+    "operating normally",
+    "no fault found"
+  ],
+  "gold_doc_sources": [
+    "kernel_modules.md"
+  ],
+  "source_type": "synthetic"
+}

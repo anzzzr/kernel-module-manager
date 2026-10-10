@@ -1,0 +1,32 @@
+{
+  "id": "case_34_abi_mismatch_tp_smapi",
+  "module": "tp_smapi",
+  "category": "unknown symbol / ABI mismatch",
+  "evidence": {
+    "module": "tp_smapi",
+    "commands": {
+      "uname": "6.6.0-14-generic",
+      "lsmod": "Module                  Size  Used by\nthinkpad_ec            16384  0\n",
+      "modinfo": "filename:       /lib/modules/6.6.0-14-generic/updates/dkms/tp_smapi.ko\n",
+      "dmesg": "[   12.102391] tp_smapi: disagrees about version of symbol thinkpad_ec_try_lock",
+      "journalctl": "tp-smapi: module insertion failed with symbol version mismatch",
+      "modprobe_deps": "insmod /lib/modules/6.6.0-14-generic/updates/dkms/tp_smapi.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'tp_smapi': Exec format error"
+    }
+  },
+  "gold_root_cause_category": "unknown symbol / ABI mismatch",
+  "gold_keywords": [
+    "symbol version mismatch",
+    "disagrees about version of symbol",
+    "ABI",
+    "rebuild dkms"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "case_09_missing_dep_nvidia_uvm",
+  "module": "nvidia_uvm",
+  "category": "missing dependency",
+  "evidence": {
+    "module": "nvidia_uvm",
+    "commands": {
+      "uname": "5.19.0-46-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/5.19.0-46-generic/updates/dkms/nvidia-uvm.ko\ndepends:        nvidia\n",
+      "dmesg": "[   72.102391] nvidia_uvm: Unknown symbol nvUvmInterfaceSessionDestroy (err -2)",
+      "journalctl": "cuda-driver: failed to initialize unified memory because nvidia base module is absent",
+      "modprobe_deps": "insmod /lib/modules/5.19.0-46-generic/updates/dkms/nvidia.ko\ninsmod /lib/modules/5.19.0-46-generic/updates/dkms/nvidia-uvm.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'nvidia_uvm': Unknown symbol in module"
+    }
+  },
+  "gold_root_cause_category": "missing dependency",
+  "gold_keywords": [
+    "nvidia",
+    "dependency",
+    "depends: nvidia",
+    "missing dependency",
+    "nvidia-uvm"
+  ],
+  "gold_doc_sources": [
+    "nvidia_troubleshooting.md",
+    "module_dependencies.md"
+  ],
+  "source_type": "adapted_public_bug",
+  "source_reference": "https://forums.developer.nvidia.com/t/nvidia-uvm-unknown-symbol/42111"
+}

@@ -1,0 +1,31 @@
+{
+  "id": "case_42_healthy_nvidia",
+  "module": "nvidia",
+  "category": "healthy module",
+  "evidence": {
+    "module": "nvidia",
+    "commands": {
+      "uname": "6.5.0-28-generic",
+      "lsmod": "Module                  Size  Used by\nnvidia_uvm            3489792  0\nnvidia_modeset        1556480  0\nnvidia               56623104  2 nvidia_modeset,nvidia_uvm\n",
+      "modinfo": "filename:       /lib/modules/6.5.0-28-generic/updates/dkms/nvidia.ko\nversion:        550.54.14\nvermagic:       6.5.0-28-generic SMP preempt mod_unload \ndepends:        \n",
+      "dmesg": "[   14.412091] nvidia: loading out-of-tree module taints kernel.\n[   14.412104] nvidia: module license 'NVIDIA' taints kernel.\n[   14.500112] NVRM: loading NVIDIA UNIX x86_64 Kernel Module  550.54.14",
+      "journalctl": "systemd[1]: Started NVIDIA Persistence Daemon.",
+      "modprobe_deps": "insmod /lib/modules/6.5.0-28-generic/updates/dkms/nvidia.ko",
+      "loaded_check": "nvidia               56623104  2"
+    },
+    "errors": {}
+  },
+  "gold_root_cause_category": "healthy module",
+  "gold_keywords": [
+    "healthy",
+    "loaded",
+    "functioning",
+    "no fault found",
+    "normal"
+  ],
+  "gold_doc_sources": [
+    "nvidia_troubleshooting.md",
+    "kernel_modules.md"
+  ],
+  "source_type": "synthetic"
+}

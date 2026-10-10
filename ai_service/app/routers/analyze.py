@@ -6,7 +6,7 @@ import httpx
 from fastapi import APIRouter, Header, HTTPException
 
 from app.config import get_config
-from app.models import Evidence, AnalyzeResponse, DiagnosisResult
+from app.models import AnalyzeResponse, DiagnosisResult, Evidence
 from app.services.llm_client import call_llm
 from app.services.rag_service import retrieve_context
 

@@ -1,0 +1,34 @@
+{
+  "id": "case_39_dkms_zfs_make_fail",
+  "module": "zfs",
+  "category": "DKMS build failure",
+  "evidence": {
+    "module": "zfs",
+    "commands": {
+      "uname": "6.8.0-31-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "modinfo: ERROR: Module zfs not found.",
+      "dmesg": "",
+      "journalctl": "dkms[1902]: Error! Bad return status for module build on kernel: 6.8.0-31-generic (x86_64)\nConsult /var/lib/dkms/zfs/2.1.5/build/make.log for more information.",
+      "modprobe_deps": "",
+      "loaded_check": ""
+    },
+    "errors": {
+      "dkms": "Bad return status for module build on kernel: 6.8.0-31-generic",
+      "modprobe": "modprobe: FATAL: Module zfs not found"
+    }
+  },
+  "gold_root_cause_category": "DKMS build failure",
+  "gold_keywords": [
+    "dkms",
+    "bad return status",
+    "make.log",
+    "module build",
+    "kernel headers"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

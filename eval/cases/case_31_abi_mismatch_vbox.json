@@ -1,0 +1,34 @@
+{
+  "id": "case_31_abi_mismatch_vbox",
+  "module": "vboxdrv",
+  "category": "unknown symbol / ABI mismatch",
+  "evidence": {
+    "module": "vboxdrv",
+    "commands": {
+      "uname": "6.5.0-28-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/6.5.0-28-generic/misc/vboxdrv.ko\nvermagic:       6.5.0-28-generic SMP preempt mod_unload \n",
+      "dmesg": "[   41.102391] vboxdrv: Unknown symbol RTSpinlockCreate (err -2)\n[   41.102401] vboxdrv: Unknown symbol RTMemContAlloc (err -2)\n[   41.102410] vboxdrv: disagrees about version of symbol alloc_netdev_mqs",
+      "journalctl": "systemd[1]: VirtualBox Linux kernel driver failed to load: Unknown symbol in module",
+      "modprobe_deps": "insmod /lib/modules/6.5.0-28-generic/misc/vboxdrv.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'vboxdrv': Unknown symbol in module, or unknown parameter"
+    }
+  },
+  "gold_root_cause_category": "unknown symbol / ABI mismatch",
+  "gold_keywords": [
+    "unknown symbol",
+    "disagrees about version of symbol",
+    "ABI mismatch",
+    "recompile",
+    "kernel headers"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "common_errors.md"
+  ],
+  "source_type": "adapted_public_bug",
+  "source_reference": "https://www.virtualbox.org/ticket/21491"
+}

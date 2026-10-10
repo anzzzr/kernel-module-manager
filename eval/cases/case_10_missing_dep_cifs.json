@@ -1,0 +1,33 @@
+{
+  "id": "case_10_missing_dep_cifs",
+  "module": "cifs",
+  "category": "missing dependency",
+  "evidence": {
+    "module": "cifs",
+    "commands": {
+      "uname": "6.1.0-18-amd64",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/6.1.0-18-amd64/kernel/fs/smb/client/cifs.ko\ndepends:        dns_resolver,cifs_arc4,fscache\n",
+      "dmesg": "[   91.192014] cifs: Unknown symbol fscache_acquire_volume (err -2)",
+      "journalctl": "mount.cifs: mount error: cifs filesystem not supported by the system",
+      "modprobe_deps": "insmod /lib/modules/6.1.0-18-amd64/kernel/net/dns_resolver/dns_resolver.ko\ninsmod /lib/modules/6.1.0-18-amd64/kernel/fs/netfs/fscache.ko\ninsmod /lib/modules/6.1.0-18-amd64/kernel/fs/smb/client/cifs.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'cifs': Unknown symbol in module"
+    }
+  },
+  "gold_root_cause_category": "missing dependency",
+  "gold_keywords": [
+    "fscache",
+    "dns_resolver",
+    "dependency",
+    "depends",
+    "symbol"
+  ],
+  "gold_doc_sources": [
+    "module_dependencies.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "case_04_vermagic_wireguard",
+  "module": "wireguard",
+  "category": "vermagic/kernel version mismatch",
+  "evidence": {
+    "module": "wireguard",
+    "commands": {
+      "uname": "5.4.0-150-generic",
+      "lsmod": "Module                  Size  Used by\nip6_udp_tunnel         16384  0\nudp_tunnel             20480  0\n",
+      "modinfo": "filename:       /lib/modules/5.4.0-144-generic/kernel/net/wireguard/wireguard.ko\nvermagic:       5.4.0-144-generic SMP mod_unload \ndepends:        ip6_udp_tunnel,udp_tunnel\n",
+      "dmesg": "[   88.192011] wireguard: version magic '5.4.0-144-generic SMP mod_unload' should be '5.4.0-150-generic SMP mod_unload'",
+      "journalctl": "systemd[1]: Failed to start WireGuard interface wg0: Exec format error",
+      "modprobe_deps": "insmod /lib/modules/5.4.0-144-generic/kernel/net/wireguard/wireguard.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'wireguard': Exec format error"
+    }
+  },
+  "gold_root_cause_category": "vermagic/kernel version mismatch",
+  "gold_keywords": [
+    "vermagic",
+    "5.4.0-144",
+    "5.4.0-150",
+    "version magic mismatch"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

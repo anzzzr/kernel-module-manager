@@ -1,0 +1,34 @@
+{
+  "id": "case_16_missing_fw_iwlwifi",
+  "module": "iwlwifi",
+  "category": "missing firmware",
+  "evidence": {
+    "module": "iwlwifi",
+    "commands": {
+      "uname": "6.1.0-9-amd64",
+      "lsmod": "Module                  Size  Used by\ncfg80211              970752  0\n",
+      "modinfo": "filename:       /lib/modules/6.1.0-9-amd64/kernel/drivers/net/wireless/intel/iwlwifi/iwlwifi.ko\nfirmware:       iwlwifi-ty-a0-gf-a0-59.ucode\nfirmware:       iwlwifi-so-a0-gf-a0.ucode\n",
+      "dmesg": "[    3.412091] iwlwifi 0000:00:14.3: Direct firmware load for iwlwifi-so-a0-gf-a0.ucode failed with error -2\n[    3.412104] iwlwifi 0000:00:14.3: minimum version required: iwlwifi-so-a0-gf-a0-39\n[    3.412110] iwlwifi 0000:00:14.3: Failed to start RT ucode: -2",
+      "journalctl": "kernel: iwlwifi: Direct firmware load failed with error -2",
+      "modprobe_deps": "insmod /lib/modules/6.1.0-9-amd64/kernel/drivers/net/wireless/intel/iwlwifi/iwlwifi.ko",
+      "loaded_check": "iwlwifi               458752  0"
+    },
+    "errors": {
+      "dmesg": "Direct firmware load for iwlwifi-so-a0-gf-a0.ucode failed with error -2"
+    }
+  },
+  "gold_root_cause_category": "missing firmware",
+  "gold_keywords": [
+    "firmware",
+    "failed with error -2",
+    "linux-firmware",
+    "/lib/firmware",
+    "iwlwifi"
+  ],
+  "gold_doc_sources": [
+    "common_errors.md",
+    "kernel_modules.md"
+  ],
+  "source_type": "adapted_public_bug",
+  "source_reference": "https://bugs.debian.org/cgi-bin/bugreport.cgi?bug=987114"
+}

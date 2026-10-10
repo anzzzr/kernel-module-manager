@@ -1,0 +1,33 @@
+{
+  "id": "case_17_missing_fw_amdgpu",
+  "module": "amdgpu",
+  "category": "missing firmware",
+  "evidence": {
+    "module": "amdgpu",
+    "commands": {
+      "uname": "6.5.0-18-generic",
+      "lsmod": "Module                  Size  Used by\ndrm_suballoc_helper    16384  0\n",
+      "modinfo": "filename:       /lib/modules/6.5.0-18-generic/kernel/drivers/gpu/drm/amd/amdgpu/amdgpu.ko\nfirmware:       amdgpu/navi10_sos.bin\nfirmware:       amdgpu/navi10_asd.bin\n",
+      "dmesg": "[    2.102391] amdgpu 0000:03:00.0: Direct firmware load for amdgpu/navi10_sos.bin failed with error -2\n[    2.102401] [drm:amdgpu_device_init] *ERROR* Early init failed\n[    2.102410] amdgpu: Fatal error during GPU init",
+      "journalctl": "kernel: amdgpu: Direct firmware load for amdgpu/navi10_sos.bin failed with error -2",
+      "modprobe_deps": "insmod /lib/modules/6.5.0-18-generic/kernel/drivers/gpu/drm/amd/amdgpu/amdgpu.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'amdgpu': No such device"
+    }
+  },
+  "gold_root_cause_category": "missing firmware",
+  "gold_keywords": [
+    "firmware",
+    "error -2",
+    "linux-firmware",
+    "/lib/firmware/amdgpu",
+    "navi10_sos.bin"
+  ],
+  "gold_doc_sources": [
+    "common_errors.md",
+    "kernel_modules.md"
+  ],
+  "source_type": "synthetic"
+}

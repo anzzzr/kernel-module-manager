@@ -3,9 +3,8 @@
 import logging
 
 import chromadb
-
 from kernel_diagnostic_ai.rag.documents import DocumentChunk
-from kernel_diagnostic_ai.rag.embeddings import embed_texts, embed_query
+from kernel_diagnostic_ai.rag.embeddings import embed_query, embed_texts
 
 logger = logging.getLogger(__name__)
 
@@ -53,7 +52,12 @@ def populate_store(chunks: list[DocumentChunk]) -> int:
     texts = [c.text for c in chunks]
     ids = [f"{c.source}_{c.chunk_index}" for c in chunks]
     metadatas = [
-        {"source": c.source, "title": c.title, "section": c.section}
+        {
+            "source": c.source,
+            "title": c.title,
+            "section": c.section,
+            "source_url": c.source_url,
+        }
         for c in chunks
     ]
 
@@ -93,10 +97,12 @@ def query_store(query: str, n_results: int = 5) -> list[dict]:
     for i in range(len(results["ids"][0])):
         documents.append(
             {
+                "id": results["ids"][0][i],
                 "text": results["documents"][0][i],
                 "source": results["metadatas"][0][i].get("source", ""),
                 "title": results["metadatas"][0][i].get("title", ""),
                 "section": results["metadatas"][0][i].get("section", ""),
+                "source_url": results["metadatas"][0][i].get("source_url", ""),
                 "distance": results["distances"][0][i] if results.get("distances") else None,
             }
         )

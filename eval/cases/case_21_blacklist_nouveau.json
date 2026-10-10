@@ -1,0 +1,33 @@
+{
+  "id": "case_21_blacklist_nouveau",
+  "module": "nouveau",
+  "category": "blacklisted module",
+  "evidence": {
+    "module": "nouveau",
+    "commands": {
+      "uname": "6.5.0-28-generic",
+      "lsmod": "Module                  Size  Used by\nnvidia_drm             77824  0\n",
+      "modinfo": "filename:       /lib/modules/6.5.0-28-generic/kernel/drivers/gpu/drm/nouveau/nouveau.ko\n",
+      "dmesg": "",
+      "journalctl": "systemd-modules-load: Module 'nouveau' is blacklisted in /etc/modprobe.d/blacklist-nvidia.conf",
+      "modprobe_deps": "",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: FATAL: Module nouveau is blacklisted"
+    }
+  },
+  "gold_root_cause_category": "blacklisted module",
+  "gold_keywords": [
+    "blacklisted",
+    "/etc/modprobe.d",
+    "blacklist nouveau",
+    "modprobe.d"
+  ],
+  "gold_doc_sources": [
+    "modprobe.md",
+    "nvidia_troubleshooting.md"
+  ],
+  "source_type": "adapted_public_bug",
+  "source_reference": "https://wiki.debian.org/NvidiaGraphicsDrivers#Disabling_nouveau"
+}

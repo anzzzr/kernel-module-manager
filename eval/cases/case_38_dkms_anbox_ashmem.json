@@ -1,0 +1,34 @@
+{
+  "id": "case_38_dkms_anbox_ashmem",
+  "module": "ashmem_linux",
+  "category": "DKMS build failure",
+  "evidence": {
+    "module": "ashmem_linux",
+    "commands": {
+      "uname": "5.19.0-38-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "modinfo: ERROR: Module ashmem_linux not found.",
+      "dmesg": "",
+      "journalctl": "dkms: ashmem-linux build failed with error: implicit declaration of function 'kmem_cache_create_usercopy'",
+      "modprobe_deps": "",
+      "loaded_check": ""
+    },
+    "errors": {
+      "dkms": "dkms build failed: compilation error",
+      "modprobe": "modprobe: FATAL: Module ashmem_linux not found"
+    }
+  },
+  "gold_root_cause_category": "DKMS build failure",
+  "gold_keywords": [
+    "dkms",
+    "build failed",
+    "compilation error",
+    "kernel headers",
+    "patch"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

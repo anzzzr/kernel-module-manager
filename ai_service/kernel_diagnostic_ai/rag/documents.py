@@ -1,7 +1,7 @@
 """Document loading and chunking for the RAG pipeline."""
 
-import os
 import logging
+import os
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)
@@ -16,13 +16,30 @@ class DocumentChunk:
     title: str
     section: str
     chunk_index: int
+    source_url: str = ""
+
+
+def _parse_frontmatter(text: str) -> tuple[dict, str]:
+    """Parse YAML frontmatter from markdown file if present."""
+    metadata = {}
+    content = text
+    if text.startswith("---"):
+        parts = text.split("---", 2)
+        if len(parts) >= 3:
+            fm_text = parts[1]
+            content = parts[2].lstrip()
+            for line in fm_text.splitlines():
+                if ":" in line:
+                    k, v = line.split(":", 1)
+                    metadata[k.strip().lower()] = v.strip()
+    return metadata, content
 
 
 def load_documents(docs_dir: str) -> list[dict]:
     """Load all markdown files from the docs directory.
 
     Returns:
-        List of dicts with keys: text, source, title.
+        List of dicts with keys: text, source, title, source_url.
     """
     documents = []
     if not os.path.isdir(docs_dir):
@@ -34,13 +51,23 @@ def load_documents(docs_dir: str) -> list[dict]:
             continue
         filepath = os.path.join(docs_dir, filename)
         with open(filepath, "r", encoding="utf-8") as f:
-            text = f.read()
-        title = filename.replace(".md", "").replace("_", " ").title()
+            raw_text = f.read()
+
+        fm_meta, text = _parse_frontmatter(raw_text)
+        title = fm_meta.get("title") or filename.replace(".md", "").replace("_", " ").title()
+        source_url = fm_meta.get("source_url", "")
+
         for line in text.split("\n"):
             if line.startswith("# "):
                 title = line.lstrip("# ").strip()
                 break
-        documents.append({"text": text, "source": filename, "title": title})
+
+        documents.append({
+            "text": text,
+            "source": filename,
+            "title": title,
+            "source_url": source_url,
+        })
         logger.info("Loaded document: %s (%d chars)", filename, len(text))
 
     return documents
@@ -119,6 +146,7 @@ def chunk_documents(documents: list[dict], chunk_size: int = 600, overlap: int =
                     title=doc["title"],
                     section=section,
                     chunk_index=i,
+                    source_url=doc.get("source_url", ""),
                 )
             )
     logger.info("Created %d chunks from %d documents", len(all_chunks), len(documents))

@@ -2,7 +2,6 @@
 
 import argparse
 import json
-import os
 import sys
 
 from kernel_diagnostic_ai import __version__
@@ -25,7 +24,7 @@ def rag_status_command(args):
     """Check the status of the local RAG documentation store."""
     from kernel_diagnostic_ai.config import get_config
     from kernel_diagnostic_ai.rag.documents import load_documents
-    from kernel_diagnostic_ai.rag.store import init_store, get_collection
+    from kernel_diagnostic_ai.rag.store import get_collection, init_store
 
     cfg = get_config()
     docs_dir = cfg["docs_dir"]
@@ -46,9 +45,10 @@ def rag_status_command(args):
 def diagnose_command(args):
     """Run an AI diagnostic on a module using provided evidence or local telemetry."""
     import asyncio
+
     from kernel_diagnostic_ai.models import Evidence
-    from kernel_diagnostic_ai.services.rag_service import retrieve_context
     from kernel_diagnostic_ai.services.llm_client import call_llm
+    from kernel_diagnostic_ai.services.rag_service import retrieve_context
 
     module = args.module
     commands = {}

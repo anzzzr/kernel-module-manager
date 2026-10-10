@@ -1,0 +1,14 @@
+{
+  "module": "iwlwifi",
+  "commands": {
+    "uname": "6.8.0-40-generic",
+    "lsmod": "Module                  Size  Used by\ncfg80211              983040  0\n",
+    "modinfo": "filename:       /lib/modules/6.8.0-40-generic/kernel/drivers/net/wireless/intel/iwlwifi/iwlwifi.ko\nversion:        in-tree:d\nvermagic:       6.8.0-40-generic SMP preempt mod_unload modversions\ndepends:        cfg80211\nfirmware:       iwlwifi-ty-a0-gf-a0-59.ucode\n",
+    "dmesg": "[    4.112044] iwlwifi 0000:00:14.3: Direct firmware load for iwlwifi-ty-a0-gf-a0-59.ucode failed with error -2\n[    4.112089] iwlwifi 0000:00:14.3: minimum version required: iwlwifi-ty-a0-gf-a0-59\n[    4.112102] iwlwifi 0000:00:14.3: Failed to start RT ucode: -2",
+    "journalctl": "kernel: iwlwifi: Direct firmware load failed with error -2",
+    "modprobe_deps": "insmod /lib/modules/6.8.0-40-generic/kernel/net/wireless/cfg80211.ko\ninsmod /lib/modules/6.8.0-40-generic/kernel/drivers/net/wireless/intel/iwlwifi/iwlwifi.ko"
+  },
+  "errors": {
+    "dmesg": "Direct firmware load for iwlwifi-ty-a0-gf-a0-59.ucode failed with error -2"
+  }
+}

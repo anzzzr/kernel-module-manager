@@ -1,0 +1,14 @@
+{
+  "module": "vboxdrv",
+  "commands": {
+    "uname": "6.8.0-40-generic",
+    "lsmod": "Module                  Size  Used by\n",
+    "modinfo": "filename:       /lib/modules/6.8.0-40-generic/updates/dkms/vboxdrv.ko\nversion:        7.0.16 r162802\nvermagic:       6.8.0-40-generic SMP preempt mod_unload modversions\nsigner:         DKMS module verification key\n",
+    "dmesg": "[   85.201019] Loading of unsigned module is rejected\n[   85.201025] vboxdrv: Key was rejected by service\n[   85.201031] Lockdown: modprobe: unsigned module loading is restricted; see man kernel_lockdown.7",
+    "journalctl": "kernel: Lockdown: modprobe: unsigned module loading is restricted; see man kernel_lockdown.7",
+    "modprobe_deps": "insmod /lib/modules/6.8.0-40-generic/updates/dkms/vboxdrv.ko"
+  },
+  "errors": {
+    "modprobe": "modprobe: ERROR: could not insert 'vboxdrv': Key was rejected by service"
+  }
+}

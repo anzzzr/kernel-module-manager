@@ -1,8 +1,16 @@
 """Shared test fixtures."""
 
-import os
 import pytest
 from fastapi.testclient import TestClient
+
+
+@pytest.fixture(autouse=True)
+def reset_cache():
+    """Reset response cache between tests."""
+    from kernel_diagnostic_ai.services.cache import clear_cache
+    clear_cache()
+    yield
+    clear_cache()
 
 
 @pytest.fixture
@@ -13,6 +21,7 @@ def mock_env(monkeypatch):
     monkeypatch.setenv("LLM_MODEL", "test-model")
     monkeypatch.setenv("AI_SERVICE_TOKEN", "test-token")
     monkeypatch.setenv("RAG_ENABLED", "false")  # Disable RAG for unit tests
+
 
 
 @pytest.fixture

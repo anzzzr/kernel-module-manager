@@ -1,0 +1,33 @@
+{
+  "id": "case_45_noisy_disk_warning_during_vermagic_fail",
+  "module": "nvidia",
+  "category": "vermagic/kernel version mismatch",
+  "evidence": {
+    "module": "nvidia",
+    "commands": {
+      "uname": "6.8.0-40-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/6.5.0-28-generic/updates/dkms/nvidia.ko\nvermagic:       6.5.0-28-generic SMP preempt mod_unload \n",
+      "dmesg": "[  100.120911] ata1.00: exception Emask 0x0 SAct 0x0 SErr 0x0 action 0x0\n[  100.120920] ata1.00: failed command: READ DMA\n[  100.201991] nvidia: version magic '6.5.0-28-generic' should be '6.8.0-40-generic'\n[  100.202010] systemd[1]: cron.service: Succeeded.",
+      "journalctl": "smartd[412]: Device /dev/sda is experiencing high read retry rate",
+      "modprobe_deps": "insmod /lib/modules/6.5.0-28-generic/updates/dkms/nvidia.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'nvidia': Exec format error"
+    }
+  },
+  "gold_root_cause_category": "vermagic/kernel version mismatch",
+  "gold_keywords": [
+    "vermagic",
+    "version magic",
+    "6.5.0-28-generic",
+    "6.8.0-40-generic",
+    "rebuild dkms"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "nvidia_troubleshooting.md"
+  ],
+  "source_type": "synthetic"
+}

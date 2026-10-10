@@ -6,8 +6,8 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 
 from kernel_diagnostic_ai.config import get_config
-from kernel_diagnostic_ai.rag.documents import load_documents, chunk_documents
-from kernel_diagnostic_ai.rag.store import init_store, populate_store, get_collection
+from kernel_diagnostic_ai.rag.documents import chunk_documents, load_documents
+from kernel_diagnostic_ai.rag.store import get_collection, init_store, populate_store
 from kernel_diagnostic_ai.routers.analyze import router as analyze_router
 
 logging.basicConfig(
@@ -66,4 +66,18 @@ def health():
     return {
         "status": "ok",
         "rag": rag_status,
+    }
+
+
+@app.get("/stats")
+def stats():
+    """Expose operational statistics, cache metrics, and cost estimations."""
+    from kernel_diagnostic_ai.services.cache import get_cache_stats
+    from kernel_diagnostic_ai.services.cost import get_service_stats
+
+    return {
+        "service": "kernel-diagnostic-ai-python",
+        "version": "0.1.0",
+        "service_metrics": get_service_stats(),
+        "cache_metrics": get_cache_stats(),
     }

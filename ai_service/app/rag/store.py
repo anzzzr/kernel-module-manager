@@ -5,7 +5,7 @@ import logging
 import chromadb
 
 from app.rag.documents import DocumentChunk
-from app.rag.embeddings import embed_texts, embed_query
+from app.rag.embeddings import embed_query, embed_texts
 
 logger = logging.getLogger(__name__)
 

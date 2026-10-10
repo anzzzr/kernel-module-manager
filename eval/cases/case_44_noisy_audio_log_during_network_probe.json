@@ -1,0 +1,32 @@
+{
+  "id": "case_44_noisy_audio_log_during_network_probe",
+  "module": "r8169",
+  "category": "missing firmware",
+  "evidence": {
+    "module": "r8169",
+    "commands": {
+      "uname": "6.1.0-21-amd64",
+      "lsmod": "Module                  Size  Used by\nrealtek                32768  0\n",
+      "modinfo": "filename:       /lib/modules/6.1.0-21-amd64/kernel/drivers/net/ethernet/realtek/r8169.ko\nfirmware:       rtl_nic/rtl8168h-2.fw\n",
+      "dmesg": "[   12.001923] snd_hda_intel 0000:00:1f.3: CORB reset timeout#1, CORBRP = 0\n[   12.001930] usb 1-1: reset high-speed USB device number 2 using xhci_hcd\n[   12.002010] EXT4-fs (sda1): re-mounted. Opts: errors=remount-ro\n[   12.102391] r8169 0000:02:00.0: Direct firmware load for rtl_nic/rtl8168h-2.fw failed with error -2\n[   12.102401] thermal thermal_zone0: critical temperature reaching 98C",
+      "journalctl": "pulseaudio: sink input dropped\nkernel: r8169: Direct firmware load for rtl_nic/rtl8168h-2.fw failed with error -2",
+      "modprobe_deps": "insmod /lib/modules/6.1.0-21-amd64/kernel/drivers/net/ethernet/realtek/r8169.ko",
+      "loaded_check": "r8169                  98304  0"
+    },
+    "errors": {
+      "dmesg": "Direct firmware load for rtl_nic/rtl8168h-2.fw failed with error -2"
+    }
+  },
+  "gold_root_cause_category": "missing firmware",
+  "gold_keywords": [
+    "firmware",
+    "rtl_nic/rtl8168h-2.fw",
+    "error -2",
+    "linux-firmware"
+  ],
+  "gold_doc_sources": [
+    "common_errors.md",
+    "kernel_modules.md"
+  ],
+  "source_type": "synthetic"
+}
