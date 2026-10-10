@@ -1,0 +1,14 @@
+{
+  "module": "nouveau",
+  "commands": {
+    "uname": "6.8.0-40-generic",
+    "lsmod": "Module                  Size  Used by\nnvidia               56885248  0\n",
+    "modinfo": "filename:       /lib/modules/6.8.0-40-generic/kernel/drivers/gpu/drm/nouveau/nouveau.ko\nvermagic:       6.8.0-40-generic SMP preempt mod_unload modversions\ndepends:        drm,ttm,drm_display_helper\n",
+    "dmesg": "[    3.201402] nouveau: module is blacklisted in /etc/modprobe.d/blacklist-nvidia.conf",
+    "journalctl": "modprobe[301]: Module nouveau is blacklisted",
+    "modprobe_deps": "insmod /lib/modules/6.8.0-40-generic/kernel/drivers/gpu/drm/nouveau/nouveau.ko"
+  },
+  "errors": {
+    "modprobe": "modprobe: FATAL: Module nouveau is blacklisted"
+  }
+}

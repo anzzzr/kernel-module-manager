@@ -1,0 +1,12 @@
+{
+  "module": "loop",
+  "commands": {
+    "uname": "6.8.0-40-generic",
+    "lsmod": "Module                  Size  Used by\nloop                   40960  12\n",
+    "modinfo": "filename:       /lib/modules/6.8.0-40-generic/kernel/drivers/block/loop.ko\nvermagic:       6.8.0-40-generic SMP preempt mod_unload modversions\n",
+    "dmesg": "[    1.802141] loop: module loaded",
+    "journalctl": "systemd[1]: Created slice system-getty.slice",
+    "modprobe_deps": "insmod /lib/modules/6.8.0-40-generic/kernel/drivers/block/loop.ko"
+  },
+  "errors": {}
+}

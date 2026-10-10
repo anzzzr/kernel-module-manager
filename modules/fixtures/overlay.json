@@ -1,0 +1,14 @@
+{
+  "module": "overlay",
+  "commands": {
+    "uname": "6.8.0-40-generic",
+    "lsmod": "Module                  Size  Used by\noverlay               151552  8\n",
+    "modinfo": "filename:       /lib/modules/6.8.0-40-generic/kernel/fs/overlayfs/overlay.ko\nvermagic:       6.8.0-40-generic SMP preempt mod_unload modversions\n",
+    "dmesg": "[  512.102910] overlayfs: mounted overlay on /var/lib/docker/overlay2",
+    "journalctl": "dockerd[612]: Initialized graphdriver overlay2",
+    "modprobe_deps": "insmod /lib/modules/6.8.0-40-generic/kernel/fs/overlayfs/overlay.ko"
+  },
+  "errors": {
+    "rmmod": "rmmod: ERROR: Module overlay is in use"
+  }
+}
