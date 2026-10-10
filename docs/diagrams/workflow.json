@@ -100,8 +100,8 @@
       "lane": "ai_service",
       "col": 3,
       "type": "database",
-      "label": "ChromaDB RAG",
-      "sublabel": "embed query & match",
+      "label": "Hybrid RAG Engine",
+      "sublabel": "BM25 + Vector (RRF)",
       "tag": "top-5 docs",
       "width": 140
     },
@@ -120,11 +120,12 @@
       "lane": "ai_service",
       "col": 5,
       "type": "security",
-      "label": "Pydantic Validator",
-      "sublabel": "DiagnosisResult schema",
-      "tag": "Read-only guard",
+      "label": "Safety & Validator",
+      "sublabel": "DiagnosisResult & Regex",
+      "tag": "Safety Filter",
       "width": 140
     },
+
     {
       "id": "rejected_req",
       "lane": "exceptions",

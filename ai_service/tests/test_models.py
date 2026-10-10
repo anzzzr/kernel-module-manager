@@ -1,9 +1,8 @@
 """Tests for Pydantic models."""
 
 import pytest
+from kernel_diagnostic_ai.models import AnalyzeResponse, DiagnosisResult, Evidence
 from pydantic import ValidationError
-
-from kernel_diagnostic_ai.models import Evidence, DiagnosisResult, AnalyzeResponse
 
 
 class TestEvidence:

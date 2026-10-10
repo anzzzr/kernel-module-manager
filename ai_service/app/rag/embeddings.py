@@ -1,7 +1,6 @@
 """Embedding generation using sentence-transformers."""
 
 import logging
-from functools import lru_cache
 
 logger = logging.getLogger(__name__)
 

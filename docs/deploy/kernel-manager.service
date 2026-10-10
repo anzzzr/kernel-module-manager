@@ -1,0 +1,41 @@
+[Unit]
+Description=Kernel Module Manager Daemon
+Documentation=https://github.com/anzzzr/kernel-module-manager
+After=network.target
+
+[Service]
+Type=simple
+# Run as dedicated unprivileged system account — NEVER as full root
+User=kmm-service
+Group=kmm-service
+WorkingDirectory=/opt/kernel-module-manager
+
+# Grant strictly the required Linux capability for module load/unload
+# CAP_SYS_MODULE enables modprobe, init_module, finit_module, delete_module
+# without granting full root/superuser host privileges
+AmbientCapabilities=CAP_SYS_MODULE
+CapabilityBoundingSet=CAP_SYS_MODULE
+
+# System call and filesystem sandboxing
+ProtectSystem=strict
+ProtectHome=true
+ProtectKernelTunables=true
+ProtectControlGroups=true
+PrivateTmp=true
+NoNewPrivileges=true
+RestrictSUIDSGID=true
+
+# Read-only access to host kernel modules directory
+ReadOnlyPaths=/lib/modules
+ReadOnlyPaths=/usr/lib/modules
+ReadOnlyPaths=/etc/modprobe.d
+
+# Environment configuration
+EnvironmentFile=/etc/default/kernel-module-manager
+ExecStart=/opt/kernel-module-manager/kernel-module-manager
+
+Restart=on-failure
+RestartSec=5s
+
+[Install]
+WantedBy=multi-user.target

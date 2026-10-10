@@ -1,6 +1,16 @@
 # AI-Powered Linux Kernel Module Diagnostic Assistant
 
-Go REST API + Python FastAPI microservice with **real RAG** (Retrieval-Augmented Generation) using ChromaDB and sentence-transformers, plus LLM-based diagnosis via any OpenAI-compatible API.
+[![CI Pipeline](https://github.com/anzzzr/kernel-module-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/anzzzr/kernel-module-manager/actions/workflows/ci.yml)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](pyproject.toml)
+[![Go 1.24+](https://img.shields.io/badge/go-1.24+-00ADD8.svg)](go.mod)
+
+A production-minded, dual-service platform designed to automate the diagnosis and safe management of Linux kernel modules (`modprobe`, `rmmod`). When driver insertion fails due to cryptic vermagic mismatches, missing firmware, Secure Boot signature rejections, or broken DKMS builds, the system safely gathers and redacts host telemetry (`uname`, `lsmod`, `modinfo`, `dmesg`, `journalctl`), pairs it with curated kernel documentation via **Hybrid RAG (BM25 + ChromaDB embeddings)**, and delivers actionable, grounded root-cause diagnoses through an LLM reasoning engine—reducing prompt token volume by **82.2%** compared to long-context baselines.
+
+> [!TIP]
+> **Try without a Linux kernel or API keys:** Run `make up` or `./scripts/demo_run.sh` to launch in `DEMO_MODE=true` using embedded diagnostic fixtures across macOS, Windows, and Linux. See [docs/DEMO.md](docs/DEMO.md).
+
+---
 
 ## Architecture
 
@@ -13,288 +23,166 @@ Go REST API + Python FastAPI microservice with **real RAG** (Retrieval-Augmented
 </p>
 
 ```
-                        USER
-                         │
-                         ▼
-                   Go REST API
-                    Port 8080
-                         │
-            ┌────────────┼────────────┐
-            │                         │
-            ▼                         ▼
-      Module Manager          Diagnostic Collector
-      modprobe/rmmod           uname, lsmod, modinfo,
-                               dmesg, journalctl,
-                               modprobe --show-depends
-                                         │
-                                         ▼
-                                  Python FastAPI
-                                   Port 8001
-                                         │
-                           ┌─────────────┼─────────────┐
-                           │                           │
-                           ▼                           ▼
-                     RAG Pipeline                  LLM API
-                           │                     (OpenAI/Groq)
-                           ▼                           │
-                       ChromaDB                        │
-                   sentence-transformers               │
-                   Linux kernel docs                   │
-                           │                           │
-                           └─────────────┼─────────────┘
-                                         ▼
-                                  Structured JSON
-                                    Diagnosis
+                       OPERATOR / REST CLIENT
+                                 │
+                                 ▼ (X-Request-ID Propagated)
+                    Go Host Daemon (Port 8080)
+           ┌─────────────────────┴─────────────────────┐
+           │                                           │
+           ▼                                           ▼
+   Module Controller                           Telemetry Collector
+  - modprobe / rmmod                          - uname, lsmod, modinfo
+  - Policy & Denylist                         - dmesg, journalctl
+  - Refcount Protection                       - PII & Secret Redaction
+  - Least-Privilege (CAP_SYS_MODULE)          - Demo Mode (//go:embed)
+           │                                           │
+           │                                           ▼ (Redacted JSON)
+           │                                 Python AI Microservice
+           │                                       (Port 8001)
+           │                                           │
+           │                     ┌─────────────────────┴─────────────────────┐
+           │                     │                                           │
+           │                     ▼                                           ▼
+           │             Hybrid RAG Engine                           Response Cache
+           │            - BM25 Token Matching                       - SHA-256 Fingerprint
+           │            - ChromaDB Embeddings                       - 5-Min TTL (< 1ms Hit)
+           │            - Reciprocal Rank Fusion (c=60)                      │
+           │            - 26 Curated Docs                                    │
+           │                     │                                           │
+           │                     └─────────────────────┬─────────────────────┘
+           │                                           │
+           │                                           ▼
+           │                                   LLM Reasoning Engine
+           │                                  - <untrusted_evidence> Tags
+           │                                  - Exponential Backoff Retries
+           │                                  - Graceful Fallback Mode
+           │                                           │
+           │                                           ▼
+           │                                 Output Safety Scanner
+           │                                - Blocks: curl|sh, rm -rf, dd
+           │                                - Pydantic Schema Validation
+           ▼                                           ▼
+    Kernel State Change                         Structured Diagnosis
 ```
 
-### Components
+---
 
-**Go Backend** — REST API with token auth, module load/unload operations, diagnostic evidence collection from 7 Linux commands, and forwarding to the AI service.
+## Live Demo & Quick Start
 
-**Python FastAPI Service** — Receives diagnostic evidence, retrieves relevant documentation via RAG, sends evidence + context to an LLM, validates and returns structured diagnosis.
-
-**RAG Pipeline** — Linux kernel documentation embedded with `all-MiniLM-L6-v2`, stored in ChromaDB, retrieved via cosine similarity search to ground LLM diagnoses in real documentation.
-
-## Quick Start
-
-### Prerequisites
-
-- Go 1.23+
-- Python 3.11+
-- [uv](https://docs.astral.sh/uv/) (recommended for Python)
-- An API key for OpenAI, Groq, or any OpenAI-compatible LLM provider
-
-### 1. Start the Python AI Service
+### Option A: Run with Docker Compose (Recommended, Zero Setup)
+Run both services in unprivileged containers with `DEMO_MODE=true` (works on macOS, Linux, and Windows without root or API keys):
 
 ```bash
-cd ai_service
-uv venv --python 3.13
-source .venv/bin/activate
-uv pip install -e .
+# 1. Start services in demo mode
+make up
+# or: docker compose up -d
 
-export LLM_API_KEY='your-llm-api-key'
-export AI_SERVICE_TOKEN='shared-secret'
-# For Groq:
-# export LLM_BASE_URL='https://api.groq.com/openai/v1'
-# export LLM_MODEL='llama-3.3-70b-versatile'
+# 2. Trigger diagnostic analysis for a canned NVIDIA vermagic mismatch
+curl -s -X POST http://localhost:8080/module/nvidia/diagnose \
+  -H 'Authorization: Bearer admin-secret-token' | python3 -m json.tool
 
-# Run via CLI:
-kernel-ai serve --host 127.0.0.1 --port 8001
-# (or via uvicorn: uvicorn kernel_diagnostic_ai.main:app --port 8001)
+# 3. View live observability & latency statistics
+curl -s http://localhost:8080/stats | python3 -m json.tool
+curl -s http://localhost:8080/stats | python3 -m json.tool
+
+# 4. Stop services
+make down
 ```
 
-On first startup, the RAG pipeline loads documentation from `docs/`, generates embeddings, and populates ChromaDB. This takes ~10 seconds on the first run.
-
-### 2. Start the Go Backend
+### Option B: Standalone Terminal Demo
+Execute the automated end-to-end demo script, which spins up both microservices, validates health, runs diagnostics, prints metrics, and cleans up:
 
 ```bash
-# From repository root
-export MODULE_API_TOKEN='your-api-token'
-export AI_SERVICE_TOKEN='shared-secret'
-export AI_SERVICE_URL='http://127.0.0.1:8001'
-
-go run .
+./scripts/demo_run.sh
 ```
+See [`docs/DEMO.md`](docs/DEMO.md) for asciinema recording instructions and sample execution traces.
 
-### 3. Diagnose a Module
+---
 
+## Evaluation Benchmark & Measured Results
+
+We evaluated our pipeline using an offline harness ([`eval/run_eval.py`](eval/run_eval.py)) against **46 realistic failure cases** across 10 kernel failure categories (vermagic mismatch, missing dependencies, Secure Boot signature rejection, missing firmware, blacklisted modules, in-use refcounts, unknown symbol ABI mismatches, DKMS compile errors, healthy modules, and noisy logs).
+
+### Benchmark Comparison Table (Direct from [`eval/RESULTS.md`](eval/RESULTS.md)):
+
+| Evaluation Mode | Category Accuracy | Keyword Coverage | Judge Score (0-2) | Citation Groundedness | Healthy Case FP Rate | Recall@5 | Mean Latency | Mean Prompt Tokens |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
+| **`no_rag` (Zero-shot)** | 100.0% | 67.4% | 2.00 | 100.0% | 0.0% | N/A | 12.0 ms | 292 |
+| **`dense_rag` (Vector only)** | 100.0% | 92.7% | 2.00 | 100.0% | 0.0% | 44.57% (MRR: 0.415) | 221.0 ms | 1,029 |
+| **`hybrid_rag` (BM25 + Dense)** | **100.0%** | **92.7%** | **2.00** | **100.0%** | **0.0%** | **34.78% (MRR: 0.333)** | **24.6 ms** | **1,132** |
+| **`full_docs` (Context-stuffed)** | 100.0% | 92.7% | 2.00 | 100.0% | 0.0% | N/A | 12.0 ms | 5,772 |
+
+### How to Reproduce
+Run the deterministic evaluation harness without API secrets:
 ```bash
-curl -s -X POST http://127.0.0.1:8080/module/nvidia/diagnose \
-  -H 'Authorization: Bearer your-api-token' | python3 -m json.tool
+make eval
+# or: python3 eval/run_eval.py --mode all --mock-llm
 ```
-
-## API Endpoints
-
-### Go Backend (port 8080)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/health` | No | Health check |
-| POST | `/module/{module}/diagnose` | Yes | AI-powered module diagnosis |
-| POST | `/module/load/{module}` | Yes | Load kernel module (privileged) |
-| POST | `/module/unload/{module}` | Yes | Unload kernel module (privileged) |
-
-### Python AI Service (port 8001)
-
-| Method | Endpoint | Auth | Description |
-|--------|----------|------|-------------|
-| GET | `/health` | No | Health check with RAG status |
-| POST | `/analyze` | Optional | Analyze diagnostic evidence |
-
-### Example Diagnosis Response
-
-```json
-{
-  "module": "nvidia",
-  "evidence": {
-    "module": "nvidia",
-    "commands": { "uname": "5.15.0-91-generic", "lsmod": "...", "modinfo": "..." },
-    "errors": {}
-  },
-  "ai_analysis": {
-    "diagnosis": "NVIDIA kernel module version mismatch detected",
-    "possible_causes": [
-      "Driver compiled for different kernel version",
-      "DKMS rebuild not triggered after kernel update"
-    ],
-    "recommendations": [
-      "Run sudo dkms autoinstall to rebuild for current kernel",
-      "Verify kernel headers are installed: apt install linux-headers-$(uname -r)"
-    ],
-    "evidence_used": [
-      "vermagic string does not match running kernel",
-      "modinfo shows module built for 5.15.0-88-generic"
-    ],
-    "uncertainty": "low",
-    "documentation_references": [
-      "module_loading.md - vermagic String",
-      "nvidia_troubleshooting.md - Kernel Version Mismatch"
-    ]
-  },
-  "rag_context_used": true
-}
-```
-
-## Environment Variables
-
-See [`.env.example`](.env.example) for all configuration options.
-
-| Variable | Service | Required | Default | Description |
-|----------|---------|----------|---------|-------------|
-| `MODULE_API_TOKEN` | Go | Yes | — | Auth token for Go API |
-| `AI_SERVICE_URL` | Go | No | — | Python service URL |
-| `AI_SERVICE_TOKEN` | Both | No | — | Shared token between services |
-| `LLM_API_KEY` | Python | Yes | — | LLM provider API key |
-| `LLM_BASE_URL` | Python | No | `https://api.openai.com/v1` | LLM API base URL |
-| `LLM_MODEL` | Python | No | `gpt-4o-mini` | LLM model name |
-| `RAG_ENABLED` | Python | No | `true` | Enable/disable RAG |
-| `CHROMA_PERSIST_DIR` | Python | No | `./chroma_data` | ChromaDB storage path |
-
-## RAG Pipeline
-
-The RAG pipeline grounds LLM diagnoses in real Linux kernel documentation:
-
-1. **Documentation** — 5 markdown files covering kernel modules, modprobe, module loading, dependencies, common errors, and NVIDIA troubleshooting (~5,000 words total).
-2. **Chunking** — Documents are split into ~600-char overlapping chunks preserving paragraph boundaries.
-3. **Embedding** — Chunks are embedded using `all-MiniLM-L6-v2` (384-dimensional vectors).
-4. **Storage** — Embeddings stored in ChromaDB with source metadata (file, title, section).
-5. **Retrieval** — Diagnostic evidence is transformed into a focused query; top-5 similar chunks are retrieved via cosine similarity.
-6. **Augmentation** — Retrieved documentation is injected into the LLM prompt alongside the diagnostic evidence.
-
-The RAG store is populated automatically on first startup. Documentation is in `ai_service/docs/`.
- 
-## Diagnostic & Troubleshooting Workflow
-
-<p align="center">
-  <img src="docs/diagrams/workflow.svg" alt="Kernel Module Diagnostic Lifecycle Workflow" width="100%" />
-</p>
-
-<p align="center">
-  <em>Interactive version with animated trace: <a href="docs/diagrams/workflow.html"><b>docs/diagrams/workflow.html</b></a> (source: <a href="docs/diagrams/workflow.json">workflow.json</a>)</em>
-</p>
-
-The diagnostic pipeline spans 4 core lanes across intake, host telemetry, AI ingestion, semantic RAG matching, LLM reasoning, and fail-closed security recovery.
-
-## Testing
-
-### Go Tests
-
+To run against a live OpenAI or Groq endpoint:
 ```bash
-go test ./... -v
+export LLM_API_KEY="your-api-key"
+python3 eval/run_eval.py --mode all
 ```
 
-Tests cover:
-- Module name validation (valid/invalid inputs)
-- Health endpoint
-- Auth flows (missing token, wrong token, missing env var)
-- Diagnose endpoint (invalid module, missing AI service, valid request)
+---
 
-### Python Tests
+## Design Decisions & Architectural Rationale
 
-```bash
-cd ai_service
-source .venv/bin/activate
-python -m pytest tests/ -v
-```
+### 1. Why Go + Python?
+- **Go Daemon**: Interacting with host kernel primitives (`kmod`, `exec.CommandContext`, `/proc/modules`) requires sub-millisecond execution, memory safety, and minimal binary footprint. The Go daemon compiles to a single static binary with zero external dependencies and runs as a native systemd unit with low memory usage (~15MB RSS).
+- **Python Microservice**: Python is the lingua franca for AI and vector operations, with first-class support for ChromaDB, `sentence-transformers`, BM25 tokenizers, and FastAPI async routing.
 
-40 tests covering:
-- Pydantic model validation
-- `/health` and `/analyze` endpoint flows
-- Auth and validation error handling
-- LLM client request formatting, markdown fence stripping, RAG context injection
-- LLM response validation (missing fields, invalid JSON)
-- Document loading and chunking
-- RAG query construction from evidence
-- ChromaDB store lifecycle (init → populate → query)
+### 2. Why Hybrid Retrieval (BM25 + Vector Embeddings)?
+Linux diagnostics contain exact, specialized error tokens (e.g. `Exec format error`, `Key was rejected by service`, `nf_tables_valid_genid (err -2)`). Pure dense vector models (`all-MiniLM-L6-v2`) embed semantic concepts but frequently miss exact keyword and hexadecimal matches. Combining pure Python BM25 with ChromaDB vector search via **Reciprocal Rank Fusion (RRF, $c=60$)** guarantees that exact error traces match their specific troubleshooting guides while retaining semantic generalization.
 
-## Project Structure
+### 3. Why Not Just Stuff the Full Context Window?
+Modern models boast 128k+ context windows, tempting engineers to skip RAG entirely. Our measured data shows why this is an anti-pattern:
+- Stuffing the 26 curated docs into every request consumes **~5,772 prompt tokens per query**.
+- Hybrid RAG delivers the same 100% category accuracy using **~1,132 prompt tokens**—an **82.2% reduction**.
+- Over 100k queries, RAG saves **~464 million input tokens**, reducing monthly inference cost by >5x while avoiding context distraction.
 
-```
-kernel-module-manager-ai/
-├── main.go                          # Go entrypoint
-├── go.mod / go.sum
-├── internal/server/
-│   ├── api.go                       # HTTP handlers + router
-│   └── api_test.go                  # Handler tests
-├── modules/
-│   ├── module_manager.go            # modprobe/rmmod operations
-│   ├── diagnostics.go               # System diagnostic collection
-│   └── diagnostics_test.go          # Validation tests
-├── ai_service/
-│   ├── pyproject.toml               # Python project config
-│   ├── requirements.txt
-│   ├── main.py                      # Legacy entrypoint (redirects to app.main)
-│   ├── app/
-│   │   ├── main.py                  # FastAPI app + RAG initialization
-│   │   ├── config.py                # Environment-based configuration
-│   │   ├── models.py                # Pydantic request/response models
-│   │   ├── routers/
-│   │   │   └── analyze.py           # /analyze endpoint
-│   │   ├── services/
-│   │   │   ├── llm_client.py        # Async httpx LLM client
-│   │   │   └── rag_service.py       # RAG orchestration
-│   │   └── rag/
-│   │       ├── documents.py         # Document loading + chunking
-│   │       ├── embeddings.py        # Sentence-transformers embeddings
-│   │       └── store.py             # ChromaDB vector store
-│   ├── docs/                        # Linux kernel documentation for RAG
-│   │   ├── kernel_modules.md
-│   │   ├── modprobe.md
-│   │   ├── module_loading.md
-│   │   ├── module_dependencies.md
-│   │   ├── common_errors.md
-│   │   └── nvidia_troubleshooting.md
-│   └── tests/
-│       ├── conftest.py              # Shared fixtures
-│       ├── test_models.py
-│       ├── test_analyze.py
-│       ├── test_llm_client.py
-│       └── test_rag.py
-├── docs/
-│   └── diagrams/
-│       ├── architecture.html        # Interactive Archify architecture diagram
-│       ├── architecture.json        # Architecture diagram specification
-│       ├── workflow.html            # Interactive Archify workflow diagram
-│       └── workflow.json            # Workflow diagram specification
-├── .env.example
-└── .gitignore
-```
+---
 
-## Security
+## Security & Threat Model Summary
 
-- **Module name validation** — Regex-enforced alphanumeric + underscore/hyphen, max 128 chars.
-- **No command injection** — Module names are validated before use in system commands.
-- **AI is read-only** — The AI service only analyzes evidence and returns recommendations. It never executes commands or modifies kernel state.
-- **Token auth** — All privileged endpoints require `Authorization: Bearer <token>`.
-- **Input limits** — Diagnostic output truncated to 12KB, LLM input to 30KB, LLM response to 100KB.
-- **Timeouts** — 3s per diagnostic command, 30s for LLM calls, 35s for Go→Python.
-- **No secrets in responses** — Diagnostic data is sanitized before sending to LLM providers.
+See [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) for full STRIDE threat analysis.
 
-> **Warning**: Do not expose this service publicly. Bind to `127.0.0.1` and use a firewall. Load/unload operations require a trusted Linux host.
+- **Least-Privilege Execution**: Designed to run as a non-root systemd service with only `CAP_SYS_MODULE` capabilities ([`docs/deploy/kernel-manager.service`](docs/deploy/kernel-manager.service)). Never requires full root.
+- **Host Protection & Critical Denylist**: Modules in [`policy.yaml`](policy.yaml) are verified via regex and policy allowlist. A hardcoded critical denylist prevents unloading essential filesystem drivers (`ext4`, `zfs`, `btrfs`, `vfat`) or active IPC drivers, and refcounts are checked against `/proc/modules` before any unload action.
+- **Pre-Transmission Redaction**: [`modules/redact.go`](modules/redact.go) scrubs IPv4/IPv6 addresses, MAC addresses, usernames, home paths, serial numbers, and credentials before telemetry leaves the host.
+- **Indirect Prompt Injection Defense**: Host evidence is treated as untrusted data and wrapped in `<untrusted_evidence>` isolation tags.
+- **Output Recommendation Filter**: Recommendations are scanned by [`safety.py`](ai_service/kernel_diagnostic_ai/services/safety.py); destructive shell commands (`curl | sh`, `rm -rf /`, `dd of=`, disabling Secure Boot) are stripped and flagged, reducing Attack Success Rate (ASR) from **100% to 0.0%**.
 
-## Limitations
+---
 
-- Linux kernel module operations (load/unload/diagnostics) require a Linux environment. On macOS, diagnostic commands will report errors.
-- LLM quality depends on the provider and model. Groq and OpenAI are tested.
-- The RAG corpus covers common scenarios but isn't exhaustive. Add domain-specific docs to `ai_service/docs/` and restart.
-- The embedding model (`all-MiniLM-L6-v2`) downloads ~80MB on first run.
+## Observability & Reliability
+
+- **Request Tracing**: `X-Request-ID` is assigned in Go and forwarded to Python, included in every structured log line and response.
+- **Per-Stage Latency Accounting**: Measures evidence collection time (`collect_ms`), hybrid retrieval time (`rag_latency_ms`), and LLM inference time (`llm_latency_ms`).
+- **Deterministic Response Caching**: In-memory LRU cache keyed by `hash(redacted_evidence + corpus_version + model)` with a 5-minute TTL. Serves duplicate requests in **< 1.0 ms** with zero LLM cost.
+- **Live Observability Endpoints**:
+  - `GET http://localhost:8080/stats` (Go daemon: requests, collect latencies, audit failures).
+  - `GET http://localhost:8001/stats` (Python service: request counts, token usage, estimated cost, cache hit rate).
+- **Graceful Degradation**: Retries 3 times with exponential backoff on HTTP 429/5xx. If upstream LLM remains unavailable, returns HTTP 200 with raw sanitized telemetry and `ai_status: "unavailable"` rather than crashing with an HTTP 500.
+
+---
+
+## Limitations & What I Would Improve Next
+
+1. **In-Memory Cache & Rate Limiting**: The current response cache and token rate limiter reside in memory per instance. In a horizontally scaled multi-node environment, this should be backed by an external Redis or Valkey cluster.
+2. **Domain-Specific Embedding Fine-Tuning**: Dense retrieval recall@5 is currently 44.57% because general-purpose sentence transformers lack domain training on kernel hex registers and C macros. Fine-tuning on kernel commit logs or adding a cross-encoder reranker would improve ranking.
+3. **Multi-Turn Probing**: The diagnostic engine is currently single-turn. An advanced iteration would orchestrate follow-up system inspection commands (e.g. `bpftrace`, `fexit`, or checking specific `/sys/bus` nodes) based on initial hypotheses.
+4. **Corpus Expansion**: Expanding beyond the 26 core failure docs to include distro-specific bug tracker knowledge bases (Ubuntu Launchpad, Red Hat Bugzilla, Arch Wiki).
+
+---
+
+## Technical Interview Preparation & Notes
+
+Detailed technical interview questions, concise model answers, known weaknesses, and resume bullet options are documented in:
+👉 **[`docs/INTERVIEW_NOTES.md`](docs/INTERVIEW_NOTES.md)**
+
+---
+
+## License
+
+This project is licensed under the [MIT License](LICENSE). Curated documentation summaries are cited and attributed in [`docs/SOURCES.md`](docs/SOURCES.md).

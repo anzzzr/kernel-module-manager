@@ -25,5 +25,7 @@ def get_config() -> dict:
         "ai_service_token": os.getenv("AI_SERVICE_TOKEN", ""),
         "chroma_persist_dir": os.getenv("CHROMA_PERSIST_DIR", "./chroma_data"),
         "rag_enabled": os.getenv("RAG_ENABLED", "true").lower() in ("true", "1", "yes"),
+        "hybrid_retrieval": os.getenv("HYBRID_RETRIEVAL", "true").lower() in ("true", "1", "yes"),
+        "rerank_enabled": os.getenv("RERANK_ENABLED", "false").lower() in ("true", "1", "yes"),
         "docs_dir": os.getenv("DOCS_DIR", get_default_docs_dir()),
     }

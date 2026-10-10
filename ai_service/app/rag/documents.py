@@ -1,7 +1,7 @@
 """Document loading and chunking for the RAG pipeline."""
 
-import os
 import logging
+import os
 from dataclasses import dataclass
 
 logger = logging.getLogger(__name__)

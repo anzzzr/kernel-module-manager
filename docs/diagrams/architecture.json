@@ -36,7 +36,7 @@
       "id": "collector",
       "type": "backend",
       "label": "Diagnostic Collector",
-      "sublabel": "modules.Diagnose()",
+      "sublabel": "modules.Diagnose() [Redaction & Demo]",
       "pos": [550, 240],
       "size": [150, 64]
     },
@@ -55,13 +55,13 @@
       "sublabel": "uvicorn :8001 /analyze",
       "pos": [820, 240],
       "size": [150, 64],
-      "tag": "Token Guard"
+      "tag": "Cache & Cost"
     },
     {
       "id": "rag_service",
       "type": "backend",
-      "label": "RAG Orchestrator",
-      "sublabel": "services.rag_service",
+      "label": "Hybrid RAG Engine",
+      "sublabel": "BM25 + Vector (RRF)",
       "pos": [820, 420],
       "size": [150, 64]
     },
@@ -69,7 +69,7 @@
       "id": "vector_db",
       "type": "database",
       "label": "ChromaDB Store",
-      "sublabel": "linux_kernel_docs",
+      "sublabel": "26 Curated Docs",
       "pos": [820, 580],
       "size": [150, 64],
       "tag": "Cosine Index"
@@ -85,11 +85,13 @@
     {
       "id": "llm_client",
       "type": "backend",
-      "label": "LLM Client",
-      "sublabel": "httpx async",
+      "label": "LLM Client & Safety",
+      "sublabel": "Async httpx + Retries",
       "pos": [1080, 240],
-      "size": [140, 64]
+      "size": [140, 64],
+      "tag": "Safety Filter"
     },
+
     {
       "id": "llm_provider",
       "type": "cloud",
