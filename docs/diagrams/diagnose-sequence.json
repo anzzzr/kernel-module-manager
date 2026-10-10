@@ -1,0 +1,361 @@
+{
+  "schema_version": 1,
+  "diagram_type": "sequence",
+  "meta": {
+    "title": "Kernel Module Diagnosis Sequence (POST /diagnose)",
+    "subtitle": "End-to-end request lifecycle with evidence redaction, response caching, hybrid RAG, and safety gates",
+    "output": "docs/diagrams/diagnose-sequence.html",
+    "viewBox": [
+      1180,
+      750
+    ],
+    "animation": "trace",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/anzzzr/kernel-module-manager",
+      "revision": "33afc431234b80a6046093b899f04f21e766ad35"
+    }
+  },
+  "participants": [
+    {
+      "id": "sre",
+      "type": "external",
+      "label": "SRE Client",
+      "sources": [
+        {
+          "path": "scripts/demo_run.sh",
+          "line": 1,
+          "end_line": 35,
+          "label": "client demo script"
+        }
+      ]
+    },
+    {
+      "id": "go_api",
+      "type": "backend",
+      "label": "Go Gateway",
+      "sources": [
+        {
+          "path": "internal/server/api.go",
+          "line": 30,
+          "end_line": 80,
+          "label": "API routing"
+        }
+      ]
+    },
+    {
+      "id": "policy_sec",
+      "type": "security",
+      "label": "Policy Guard",
+      "sources": [
+        {
+          "path": "modules/policy.go",
+          "line": 30,
+          "end_line": 80,
+          "label": "module policy"
+        }
+      ]
+    },
+    {
+      "id": "collector",
+      "type": "backend",
+      "label": "Collector",
+      "sources": [
+        {
+          "path": "modules/diagnostics.go",
+          "line": 20,
+          "end_line": 65,
+          "label": "collector"
+        }
+      ]
+    },
+    {
+      "id": "redactor",
+      "type": "security",
+      "label": "Redactor",
+      "sources": [
+        {
+          "path": "modules/redact.go",
+          "line": 15,
+          "end_line": 50,
+          "label": "redactor"
+        }
+      ]
+    },
+    {
+      "id": "ai_api",
+      "type": "backend",
+      "label": "FastAPI App",
+      "sources": [
+        {
+          "path": "ai_service/kernel_diagnostic_ai/main.py",
+          "line": 25,
+          "end_line": 70,
+          "label": "FastAPI routes"
+        }
+      ]
+    },
+    {
+      "id": "cache",
+      "type": "database",
+      "label": "Cache Store",
+      "sources": [
+        {
+          "path": "ai_service/kernel_diagnostic_ai/services/cache.py",
+          "line": 15,
+          "end_line": 60,
+          "label": "cache"
+        }
+      ]
+    },
+    {
+      "id": "rag_engine",
+      "type": "backend",
+      "label": "Hybrid RAG",
+      "sources": [
+        {
+          "path": "ai_service/kernel_diagnostic_ai/services/rag_service.py",
+          "line": 25,
+          "end_line": 85,
+          "label": "hybrid RAG"
+        }
+      ]
+    },
+    {
+      "id": "llm_client",
+      "type": "cloud",
+      "label": "LLM Engine",
+      "sources": [
+        {
+          "path": "ai_service/kernel_diagnostic_ai/services/llm_client.py",
+          "line": 30,
+          "end_line": 100,
+          "label": "LLM client"
+        }
+      ]
+    }
+  ],
+  "segments": [
+    {
+      "from": 155,
+      "to": 245,
+      "label": "Intake & Authorization"
+    },
+    {
+      "from": 255,
+      "to": 375,
+      "label": "Telemetry & Sanitization"
+    },
+    {
+      "from": 385,
+      "to": 500,
+      "label": "Cache & Retrieval"
+    },
+    {
+      "from": 510,
+      "to": 635,
+      "label": "LLM Reasoning & Validation"
+    }
+  ],
+  "messages": [
+    {
+      "id": "m1",
+      "from": "sre",
+      "to": "go_api",
+      "y": 170,
+      "label": "POST /diagnose (token)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m2",
+      "from": "go_api",
+      "to": "policy_sec",
+      "y": 200,
+      "label": "check token & allowlist",
+      "variant": "security"
+    },
+    {
+      "id": "m3",
+      "from": "policy_sec",
+      "to": "go_api",
+      "y": 230,
+      "label": "authorized",
+      "variant": "return"
+    },
+    {
+      "id": "m4",
+      "from": "go_api",
+      "to": "collector",
+      "y": 270,
+      "label": "collect host telemetry",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m5",
+      "from": "collector",
+      "to": "redactor",
+      "y": 300,
+      "label": "redact IPs & secrets",
+      "variant": "security"
+    },
+    {
+      "id": "m6",
+      "from": "redactor",
+      "to": "collector",
+      "y": 330,
+      "label": "sanitized data",
+      "variant": "return"
+    },
+    {
+      "id": "m7",
+      "from": "collector",
+      "to": "ai_api",
+      "y": 360,
+      "label": "POST /analyze",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m8",
+      "from": "ai_api",
+      "to": "cache",
+      "y": 400,
+      "label": "check SHA-256 cache",
+      "variant": "default"
+    },
+    {
+      "id": "m9",
+      "from": "cache",
+      "to": "ai_api",
+      "y": 430,
+      "label": "cache miss",
+      "variant": "return"
+    },
+    {
+      "id": "m10",
+      "from": "ai_api",
+      "to": "rag_engine",
+      "y": 460,
+      "label": "retrieve hybrid docs",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m11",
+      "from": "rag_engine",
+      "to": "ai_api",
+      "y": 490,
+      "label": "top-5 docs",
+      "variant": "return"
+    },
+    {
+      "id": "m12",
+      "from": "ai_api",
+      "to": "llm_client",
+      "y": 525,
+      "label": "prompt (<evidence>)",
+      "variant": "emphasis"
+    },
+    {
+      "id": "m13",
+      "from": "llm_client",
+      "to": "ai_api",
+      "y": 555,
+      "label": "structured JSON",
+      "variant": "return"
+    },
+    {
+      "id": "m14",
+      "from": "ai_api",
+      "to": "go_api",
+      "y": 585,
+      "label": "DiagnosisResult",
+      "variant": "return"
+    },
+    {
+      "id": "m15",
+      "from": "go_api",
+      "to": "sre",
+      "y": 615,
+      "label": "200 JSON root cause",
+      "variant": "return"
+    }
+  ],
+  "activations": [
+    {
+      "participant": "go_api",
+      "from": 170,
+      "to": 615,
+      "type": "backend"
+    },
+    {
+      "participant": "policy_sec",
+      "from": 200,
+      "to": 230,
+      "type": "security"
+    },
+    {
+      "participant": "collector",
+      "from": 270,
+      "to": 360,
+      "type": "backend"
+    },
+    {
+      "participant": "redactor",
+      "from": 300,
+      "to": 330,
+      "type": "security"
+    },
+    {
+      "participant": "ai_api",
+      "from": 360,
+      "to": 585,
+      "type": "backend"
+    },
+    {
+      "participant": "cache",
+      "from": 400,
+      "to": 430,
+      "type": "database"
+    },
+    {
+      "participant": "rag_engine",
+      "from": 460,
+      "to": 490,
+      "type": "backend"
+    },
+    {
+      "participant": "llm_client",
+      "from": 525,
+      "to": 555,
+      "type": "cloud"
+    }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "Sanitization & Pre-Egress",
+      "items": [
+        "Go collector redacts network and machine identifiers before payload leaves host memory",
+        "Evidence wrapped in explicit <evidence> delimiters with instruction boundary prompts",
+        "Read-only advisory: diagnosis pipeline never initiates kernel writes autonomously"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Low Latency & Cache",
+      "items": [
+        "Fingerprint hash combines redacted evidence, corpus version, and LLM model",
+        "Identical host failures serve from memory cache in sub-millisecond latency at zero cost",
+        "Hybrid RAG merges BM25 keyword matching with dense semantic embeddings"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "Resilience & Fallback",
+      "items": [
+        "LLM client employs 3x exponential backoff retries against upstream 429/5xx errors",
+        "Graceful degradation returns sanitized host evidence if AI service is unavailable",
+        "Safety filter scans recommendations for dangerous commands before client delivery"
+      ]
+    }
+  ]
+}

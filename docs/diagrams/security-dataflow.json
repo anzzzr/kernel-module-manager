@@ -1,0 +1,283 @@
+{
+  "schema_version": 1,
+  "diagram_type": "dataflow",
+  "meta": {
+    "title": "Kernel Diagnostic Security & Data Pipeline",
+    "subtitle": "Multi-stage sanitization, untrusted prompt delimiting, RAG fusion, and egress command safety filtering",
+    "output": "docs/diagrams/security-dataflow.html",
+    "viewBox": [
+      1070,
+      690
+    ],
+    "animation": "trace",
+    "visual_preset": "signal-flow",
+    "quality_profile": "showcase",
+    "repository": {
+      "url": "https://github.com/anzzzr/kernel-module-manager",
+      "revision": "33afc431234b80a6046093b899f04f21e766ad35"
+    }
+  },
+  "stages": [
+    {
+      "label": "Telemetry Intake"
+    },
+    {
+      "label": "Sanitization & Scoping"
+    },
+    {
+      "label": "Hybrid Retrieval"
+    },
+    {
+      "label": "Sandboxed Reasoning"
+    },
+    {
+      "label": "Egress Safety Gate"
+    }
+  ],
+  "nodes": [
+    {
+      "id": "raw_evidence",
+      "type": "external",
+      "label": "Host Telemetry",
+      "sublabel": "dmesg",
+      "stage": 0,
+      "row": 0,
+      "tag": "Untrusted Kernel Data",
+      "sources": [
+        {
+          "path": "modules/diagnostics.go",
+          "line": 20,
+          "end_line": 65,
+          "label": "live collector"
+        }
+      ]
+    },
+    {
+      "id": "redactor_node",
+      "type": "security",
+      "label": "Regex Redactor",
+      "sublabel": "scrub IPs",
+      "stage": 1,
+      "row": 0,
+      "tag": "Pre-Egress Scrub",
+      "sources": [
+        {
+          "path": "modules/redact.go",
+          "line": 15,
+          "end_line": 50,
+          "label": "regex redactor"
+        }
+      ]
+    },
+    {
+      "id": "injection_guard",
+      "type": "security",
+      "label": "Prompt Guard",
+      "sublabel": "<evidence> delimiters",
+      "stage": 1,
+      "row": 1,
+      "tag": "Data Boundary",
+      "sources": [
+        {
+          "path": "ai_service/kernel_diagnostic_ai/routers/analyze.py",
+          "line": 20,
+          "end_line": 75,
+          "label": "prompt delimiters"
+        }
+      ]
+    },
+    {
+      "id": "bm25_dense",
+      "type": "backend",
+      "label": "Hybrid RRF Engine",
+      "sublabel": "BM25 exact",
+      "stage": 2,
+      "row": 0,
+      "tag": "Top-5 Chunks",
+      "sources": [
+        {
+          "path": "ai_service/kernel_diagnostic_ai/services/rag_service.py",
+          "line": 25,
+          "end_line": 85,
+          "label": "RRF retriever"
+        }
+      ]
+    },
+    {
+      "id": "doc_corpus",
+      "type": "database",
+      "label": "Curated Docs",
+      "sublabel": "26 failure articles",
+      "stage": 2,
+      "row": 1,
+      "tag": "Source-Attributed",
+      "sources": [
+        {
+          "path": "ai_service/kernel_diagnostic_ai/rag/store.py",
+          "line": 25,
+          "end_line": 80,
+          "label": "doc corpus store"
+        }
+      ]
+    },
+    {
+      "id": "llm_inference",
+      "type": "cloud",
+      "label": "LLM Inference",
+      "sublabel": "async httpx",
+      "stage": 3,
+      "row": 0,
+      "tag": "Constrained Context",
+      "sources": [
+        {
+          "path": "ai_service/kernel_diagnostic_ai/services/llm_client.py",
+          "line": 30,
+          "end_line": 100,
+          "label": "LLM client"
+        }
+      ]
+    },
+    {
+      "id": "safety_filter_node",
+      "type": "security",
+      "label": "Command Filter",
+      "sublabel": "blocks rm -rf",
+      "stage": 4,
+      "row": 0,
+      "tag": "Safety Enforcer",
+      "sources": [
+        {
+          "path": "ai_service/kernel_diagnostic_ai/services/safety.py",
+          "line": 15,
+          "end_line": 55,
+          "label": "command safety filter"
+        }
+      ]
+    },
+    {
+      "id": "pydantic_val",
+      "type": "backend",
+      "label": "Schema Gate",
+      "sublabel": "DiagnosisResult",
+      "stage": 4,
+      "row": 1,
+      "tag": "Pydantic Schema",
+      "sources": [
+        {
+          "path": "ai_service/kernel_diagnostic_ai/models.py",
+          "line": 10,
+          "end_line": 35,
+          "label": "Pydantic models"
+        }
+      ]
+    },
+    {
+      "id": "audit_sink",
+      "type": "backend",
+      "label": "Audit Logger",
+      "sublabel": "caller ID",
+      "stage": 4,
+      "row": 2,
+      "tag": "Structured JSON",
+      "sources": [
+        {
+          "path": "internal/server/audit.go",
+          "line": 20,
+          "end_line": 60,
+          "label": "audit logger"
+        }
+      ]
+    }
+  ],
+  "flows": [
+    {
+      "from": "raw_evidence",
+      "to": "redactor_node",
+      "label": "raw log lines",
+      "classification": "untrusted telemetry",
+      "variant": "emphasis"
+    },
+    {
+      "from": "redactor_node",
+      "to": "injection_guard",
+      "label": "sanitized tokens",
+      "classification": "scrubbed PII",
+      "variant": "security",
+      "labelDy": 25
+    },
+    {
+      "from": "injection_guard",
+      "to": "bm25_dense",
+      "label": "error signature",
+      "classification": "query tokens",
+      "variant": "emphasis"
+    },
+    {
+      "from": "doc_corpus",
+      "to": "bm25_dense",
+      "label": "indexed chunks",
+      "classification": "verified docs",
+      "variant": "default",
+      "labelDy": -10
+    },
+    {
+      "from": "bm25_dense",
+      "to": "llm_inference",
+      "label": "prompt + top-5 docs",
+      "classification": "bounded context",
+      "variant": "emphasis"
+    },
+    {
+      "from": "llm_inference",
+      "to": "safety_filter_node",
+      "label": "raw output JSON",
+      "classification": "unverified advice",
+      "variant": "emphasis"
+    },
+    {
+      "from": "safety_filter_node",
+      "to": "pydantic_val",
+      "label": "safe suggestions",
+      "classification": "scanned actions",
+      "variant": "security",
+      "labelDy": 25
+    },
+    {
+      "from": "pydantic_val",
+      "to": "audit_sink",
+      "label": "audited result",
+      "classification": "action trace",
+      "variant": "dashed",
+      "labelDy": 25
+    }
+  ],
+  "cards": [
+    {
+      "dot": "rose",
+      "title": "Untrusted Ingestion",
+      "items": [
+        "Host logs are treated as untrusted data vulnerable to indirect injection",
+        "Pre-egress regex redactor strips IP addresses, MACs, usernames, hostnames, and UUIDs",
+        "System prompt confines log text within strict <evidence> boundaries"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "Grounded Retrieval",
+      "items": [
+        "BM25 handles exact kernel error strings like Unknown symbol or Key not available",
+        "ChromaDB handles semantic proximity via 384-dimensional dense vectors",
+        "Reciprocal Rank Fusion merges rankings without arbitrary weight tuning"
+      ]
+    },
+    {
+      "dot": "cyan",
+      "title": "Egress Enforcement",
+      "items": [
+        "Output safety filter scans recommended commands against a destructive pattern blocklist",
+        "Strict Pydantic schema validation rejects unstructured, partial, or malformed LLM responses",
+        "Structured audit logger records caller token ID, module name, and execution result"
+      ]
+    }
+  ]
+}
