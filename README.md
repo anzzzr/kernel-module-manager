@@ -1,188 +1,304 @@
-# AI-Powered Linux Kernel Module Diagnostic Assistant
+# Linux Kernel Module Manager & AI Diagnostic Assistant
+
+AI-assisted Linux kernel module diagnostics combining least-privilege host telemetry, hybrid RAG, and multi-layer prompt safety.
 
 [![CI Pipeline](https://github.com/anzzzr/kernel-module-manager/actions/workflows/ci.yml/badge.svg)](https://github.com/anzzzr/kernel-module-manager/actions/workflows/ci.yml)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Python 3.11+](https://img.shields.io/badge/python-3.11+-blue.svg)](pyproject.toml)
-[![Go 1.24+](https://img.shields.io/badge/go-1.24+-00ADD8.svg)](go.mod)
+[![Go Version](https://img.shields.io/badge/go-1.22+-00ADD8.svg)](https://golang.org)
+[![Python Version](https://img.shields.io/badge/python-3.11+-3776AB.svg)](https://python.org)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A production-minded, dual-service platform designed to automate the diagnosis and safe management of Linux kernel modules (`modprobe`, `rmmod`). When driver insertion fails due to cryptic vermagic mismatches, missing firmware, Secure Boot signature rejections, or broken DKMS builds, the system safely gathers and redacts host telemetry (`uname`, `lsmod`, `modinfo`, `dmesg`, `journalctl`), pairs it with curated kernel documentation via **Hybrid RAG (BM25 + ChromaDB embeddings)**, and delivers actionable, grounded root-cause diagnoses through an LLM reasoning engine—reducing prompt token volume by **82.2%** compared to long-context baselines.
-
-> [!TIP]
-> **Try without a Linux kernel or API keys:** Run `make up` or `./scripts/demo_run.sh` to launch in `DEMO_MODE=true` using embedded diagnostic fixtures across macOS, Windows, and Linux. See [docs/DEMO.md](docs/DEMO.md).
+[![System Architecture](docs/assets/diagrams/architecture.png)](https://anzzzr.github.io/kernel-module-manager/diagrams/architecture.html)
+*Click image above to explore the [interactive architecture diagram](https://anzzzr.github.io/kernel-module-manager/diagrams/architecture.html).*
 
 ---
 
-## Architecture
+## Why this exists
 
-<p align="center">
-  <img src="docs/diagrams/architecture.svg" alt="AI-Powered Kernel Module Manager Architecture" width="100%" />
-</p>
-
-<p align="center">
-  <em>Interactive version with pan/zoom/inspect: <a href="docs/diagrams/architecture.html"><b>docs/diagrams/architecture.html</b></a> (source: <a href="docs/diagrams/architecture.json">architecture.json</a>)</em>
-</p>
-
-```
-                       OPERATOR / REST CLIENT
-                                 │
-                                 ▼ (X-Request-ID Propagated)
-                    Go Host Daemon (Port 8080)
-           ┌─────────────────────┴─────────────────────┐
-           │                                           │
-           ▼                                           ▼
-   Module Controller                           Telemetry Collector
-  - modprobe / rmmod                          - uname, lsmod, modinfo
-  - Policy & Denylist                         - dmesg, journalctl
-  - Refcount Protection                       - PII & Secret Redaction
-  - Least-Privilege (CAP_SYS_MODULE)          - Demo Mode (//go:embed)
-           │                                           │
-           │                                           ▼ (Redacted JSON)
-           │                                 Python AI Microservice
-           │                                       (Port 8001)
-           │                                           │
-           │                     ┌─────────────────────┴─────────────────────┐
-           │                     │                                           │
-           │                     ▼                                           ▼
-           │             Hybrid RAG Engine                           Response Cache
-           │            - BM25 Token Matching                       - SHA-256 Fingerprint
-           │            - ChromaDB Embeddings                       - 5-Min TTL (< 1ms Hit)
-           │            - Reciprocal Rank Fusion (c=60)                      │
-           │            - 26 Curated Docs                                    │
-           │                     │                                           │
-           │                     └─────────────────────┬─────────────────────┘
-           │                                           │
-           │                                           ▼
-           │                                   LLM Reasoning Engine
-           │                                  - <untrusted_evidence> Tags
-           │                                  - Exponential Backoff Retries
-           │                                  - Graceful Fallback Mode
-           │                                           │
-           │                                           ▼
-           │                                 Output Safety Scanner
-           │                                - Blocks: curl|sh, rm -rf, dd
-           │                                - Pydantic Schema Validation
-           ▼                                           ▼
-    Kernel State Change                         Structured Diagnosis
-```
+Linux kernel module failures (`modprobe`, `insmod`, `dmesg`) produce cryptic error strings such as `Unknown symbol in module`, `Required key not available`, or silent exit codes that stall site reliability engineers during production incidents. Generic large language models frequently hallucinate non-existent parameters, outdated syntax, or destructive recovery commands (`rm -rf`, raw insmod) when fed raw system logs. This project pairs a security-hardened Go host management daemon with a sandboxed Python FastAPI diagnostic assistant powered by hybrid retrieval-augmented generation (RAG). By grounding LLM reasoning in verified kernel manuals and benchmarking diagnosis quality against 46 realistic failure cases, it delivers safe, actionable root-cause remediation without requiring full root privileges.
 
 ---
 
-## Live Demo & Quick Start
+## Key features
 
-### Option A: Run with Docker Compose (Recommended, Zero Setup)
-Run both services in unprivileged containers with `DEMO_MODE=true` (works on macOS, Linux, and Windows without root or API keys):
-
-```bash
-# 1. Start services in demo mode
-make up
-# or: docker compose up -d
-
-# 2. Trigger diagnostic analysis for a canned NVIDIA vermagic mismatch
-curl -s -X POST http://localhost:8080/module/nvidia/diagnose \
-  -H 'Authorization: Bearer admin-secret-token' | python3 -m json.tool
-
-# 3. View live observability & latency statistics
-curl -s http://localhost:8080/stats | python3 -m json.tool
-curl -s http://localhost:8080/stats | python3 -m json.tool
-
-# 4. Stop services
-make down
-```
-
-### Option B: Standalone Terminal Demo
-Execute the automated end-to-end demo script, which spins up both microservices, validates health, runs diagnostics, prints metrics, and cleans up:
-
-```bash
-./scripts/demo_run.sh
-```
-See [`docs/DEMO.md`](docs/DEMO.md) for asciinema recording instructions and sample execution traces.
+- **Evaluated Hybrid RAG**: Merges lexical BM25 exact keyword matching with 384-dimensional dense semantic embeddings (`all-MiniLM-L6-v2`) via Reciprocal Rank Fusion (RRF).
+- **Least-Privilege Host Daemon**: Runs unprivileged with ambient `CAP_SYS_MODULE` via systemd; full root is never required.
+- **Fail-Closed Policy Guard**: Enforces YAML-based module allowlists and a critical driver denylist preventing accidental unloading of active filesystem, storage, or network drivers.
+- **Pre-Egress Telemetry Redaction**: Automatically scrubs IPv4/IPv6 addresses, MAC addresses, hostnames, usernames, and UUIDs from kernel logs before external egress.
+- **Prompt Injection Boundaries**: Treats all telemetry as untrusted data using explicit `<evidence>` system boundaries.
+- **Output Safety Enforcer**: Scans AI-recommended commands against a destructive pattern filter (`rm -rf`, `dd`, `mkfs`, raw scripts) before client delivery.
+- **Sub-Millisecond Response Caching**: SHA-256 fingerprint in-memory cache keyed on `hash(evidence + corpus + model)` serves duplicate queries instantly at zero cost.
+- **Zero-Setup Demo Mode**: Native `DEMO_MODE=true` serves canned diagnostic fixtures on macOS and Windows without requiring a live Linux VM.
 
 ---
 
-## Evaluation Benchmark & Measured Results
+## Results
 
-We evaluated our pipeline using an offline harness ([`eval/run_eval.py`](eval/run_eval.py)) against **46 realistic failure cases** across 10 kernel failure categories (vermagic mismatch, missing dependencies, Secure Boot signature rejection, missing firmware, blacklisted modules, in-use refcounts, unknown symbol ABI mismatches, DKMS compile errors, healthy modules, and noisy logs).
+Comparison results reproduced from [`eval/RESULTS.md`](eval/RESULTS.md) across 46 realistic test cases covering 8 failure categories, healthy negative controls, and noisy logs:
 
-### Benchmark Comparison Table (Direct from [`eval/RESULTS.md`](eval/RESULTS.md)):
+| Evaluation Mode | Category Accuracy | Keyword Coverage | Judge Score (0–2) | Recall@5 | Mean Latency | Mean Tokens |
+|:---|:---:|:---:|:---:|:---:|:---:|:---:|
+| **`no_rag`** (Baseline LLM) | 100.0% | 67.4% | 2.00 | N/A | 12.0 ms | 292 |
+| **`dense_rag`** (ChromaDB only) | 100.0% | 92.7% | 2.00 | 44.57% | 181.8 ms | 1,029 |
+| **`hybrid_rag`** (BM25 + Dense RRF) | 100.0% | 92.7% | 2.00 | 34.78% | 23.4 ms | 1,132 |
+| **`full_docs`** (Long-context baseline) | 100.0% | 92.7% | 2.00 | N/A | 12.0 ms | 5,772 |
 
-| Evaluation Mode | Category Accuracy | Keyword Coverage | Judge Score (0-2) | Citation Groundedness | Healthy Case FP Rate | Recall@5 | Mean Latency | Mean Prompt Tokens |
-|:---|:---:|:---:|:---:|:---:|:---:|:---:|:---:|:---:|
-| **`no_rag` (Zero-shot)** | 100.0% | 67.4% | 2.00 | 100.0% | 0.0% | N/A | 12.0 ms | 292 |
-| **`dense_rag` (Vector only)** | 100.0% | 92.7% | 2.00 | 100.0% | 0.0% | 44.57% (MRR: 0.415) | 221.0 ms | 1,029 |
-| **`hybrid_rag` (BM25 + Dense)** | **100.0%** | **92.7%** | **2.00** | **100.0%** | **0.0%** | **34.78% (MRR: 0.333)** | **24.6 ms** | **1,132** |
-| **`full_docs` (Context-stuffed)** | 100.0% | 92.7% | 2.00 | 100.0% | 0.0% | N/A | 12.0 ms | 5,772 |
+*Evaluation Details: 46 test cases, 26 curated documentation files (~5,000 words), model `gpt-4o-mini` (recorded CI deterministic harness), top-k=5, date 2026-10-11.*
 
-### How to Reproduce
-Run the deterministic evaluation harness without API secrets:
+> **Honest Finding on Hybrid Retrieval**: While hybrid BM25 + Dense retrieval resolved exact error strings like `Unknown symbol` rapidly, Reciprocal Rank Fusion slightly diluted top-5 document recall compared to dense-only search on short, descriptive query variants. In contrast, RAG reduced token consumption by **80.4%** compared to stuffing the entire corpus into the prompt (`full_docs`), maintaining identical 92.7% keyword coverage.
+
+### Reproduce the benchmark
+
 ```bash
-make eval
-# or: python3 eval/run_eval.py --mode all --mock-llm
-```
-To run against a live OpenAI or Groq endpoint:
-```bash
+# Offline evaluation using deterministic mock harness (no API key required):
+python3 eval/run_eval.py --mode all --mock-llm
+
+# Live evaluation with OpenAI / Groq:
 export LLM_API_KEY="your-api-key"
 python3 eval/run_eval.py --mode all
 ```
 
 ---
 
-## Design Decisions & Architectural Rationale
+## Architecture
 
-### 1. Why Go + Python?
-- **Go Daemon**: Interacting with host kernel primitives (`kmod`, `exec.CommandContext`, `/proc/modules`) requires sub-millisecond execution, memory safety, and minimal binary footprint. The Go daemon compiles to a single static binary with zero external dependencies and runs as a native systemd unit with low memory usage (~15MB RSS).
-- **Python Microservice**: Python is the lingua franca for AI and vector operations, with first-class support for ChromaDB, `sentence-transformers`, BM25 tokenizers, and FastAPI async routing.
+Visual specifications generated and validated via [Archify](https://github.com/tt-a1i/archify) with source references pinned to commit `33afc43`.
 
-### 2. Why Hybrid Retrieval (BM25 + Vector Embeddings)?
-Linux diagnostics contain exact, specialized error tokens (e.g. `Exec format error`, `Key was rejected by service`, `nf_tables_valid_genid (err -2)`). Pure dense vector models (`all-MiniLM-L6-v2`) embed semantic concepts but frequently miss exact keyword and hexadecimal matches. Combining pure Python BM25 with ChromaDB vector search via **Reciprocal Rank Fusion (RRF, $c=60$)** guarantees that exact error traces match their specific troubleshooting guides while retaining semantic generalization.
+### 1. Runtime System Architecture
+[![System Architecture](docs/assets/diagrams/architecture.png)](https://anzzzr.github.io/kernel-module-manager/diagrams/architecture.html)
+*Interactive: [docs/diagrams/architecture.html](https://anzzzr.github.io/kernel-module-manager/diagrams/architecture.html) · Specification: [docs/diagrams/architecture.json](docs/diagrams/architecture.json)*
 
-### 3. Why Not Just Stuff the Full Context Window?
-Modern models boast 128k+ context windows, tempting engineers to skip RAG entirely. Our measured data shows why this is an anti-pattern:
-- Stuffing the 26 curated docs into every request consumes **~5,772 prompt tokens per query**.
-- Hybrid RAG delivers the same 100% category accuracy using **~1,132 prompt tokens**—an **82.2% reduction**.
-- Over 100k queries, RAG saves **~464 million input tokens**, reducing monthly inference cost by >5x while avoiding context distraction.
+The architecture establishes a strict trust boundary between the Go host daemon (:8080) and the sandboxed Python AI container (:8001). Privileged kernel execution is isolated within Go, while telemetry sent to Python passes through pre-egress sanitization and response caching.
 
----
+### 2. POST /diagnose Execution Sequence
+[![Diagnosis Sequence](docs/assets/diagrams/diagnose-sequence.png)](https://anzzzr.github.io/kernel-module-manager/diagrams/diagnose-sequence.html)
+*Interactive: [docs/diagrams/diagnose-sequence.html](https://anzzzr.github.io/kernel-module-manager/diagrams/diagnose-sequence.html) · Specification: [docs/diagrams/diagnose-sequence.json](docs/diagrams/diagnose-sequence.json)*
 
-## Security & Threat Model Summary
+Follows an SRE diagnosis request through constant-time Bearer authentication, host log collection, regex sanitization, SHA-256 fingerprint cache lookup, hybrid RAG retrieval, bounded prompt reasoning, and egress command safety checks.
 
-See [`docs/THREAT_MODEL.md`](docs/THREAT_MODEL.md) for full STRIDE threat analysis.
+### 3. Security Data Pipeline
+[![Security Data Flow](docs/assets/diagrams/security-dataflow.png)](https://anzzzr.github.io/kernel-module-manager/diagrams/security-dataflow.html)
+*Interactive: [docs/diagrams/security-dataflow.html](https://anzzzr.github.io/kernel-module-manager/diagrams/security-dataflow.html) · Specification: [docs/diagrams/security-dataflow.json](docs/diagrams/security-dataflow.json)*
 
-- **Least-Privilege Execution**: Designed to run as a non-root systemd service with only `CAP_SYS_MODULE` capabilities ([`docs/deploy/kernel-manager.service`](docs/deploy/kernel-manager.service)). Never requires full root.
-- **Host Protection & Critical Denylist**: Modules in [`policy.yaml`](policy.yaml) are verified via regex and policy allowlist. A hardcoded critical denylist prevents unloading essential filesystem drivers (`ext4`, `zfs`, `btrfs`, `vfat`) or active IPC drivers, and refcounts are checked against `/proc/modules` before any unload action.
-- **Pre-Transmission Redaction**: [`modules/redact.go`](modules/redact.go) scrubs IPv4/IPv6 addresses, MAC addresses, usernames, home paths, serial numbers, and credentials before telemetry leaves the host.
-- **Indirect Prompt Injection Defense**: Host evidence is treated as untrusted data and wrapped in `<untrusted_evidence>` isolation tags.
-- **Output Recommendation Filter**: Recommendations are scanned by [`safety.py`](ai_service/kernel_diagnostic_ai/services/safety.py); destructive shell commands (`curl | sh`, `rm -rf /`, `dd of=`, disabling Secure Boot) are stripped and flagged, reducing Attack Success Rate (ASR) from **100% to 0.0%**.
+Visualizes the multi-tier defense against prompt injection and data leaks: raw kernel logs pass through regex scrubbing, untrusted delimiter wrapping, grounded document retrieval, and post-generation command blocklists.
 
----
+### 4. Evaluation & CI Pipeline
+[![Eval and CI](docs/assets/diagrams/eval-and-ci.png)](https://anzzzr.github.io/kernel-module-manager/diagrams/eval-and-ci.html)
+*Interactive: [docs/diagrams/eval-and-ci.html](https://anzzzr.github.io/kernel-module-manager/diagrams/eval-and-ci.html) · Specification: [docs/diagrams/eval-and-ci.json](docs/diagrams/eval-and-ci.json)*
 
-## Observability & Reliability
-
-- **Request Tracing**: `X-Request-ID` is assigned in Go and forwarded to Python, included in every structured log line and response.
-- **Per-Stage Latency Accounting**: Measures evidence collection time (`collect_ms`), hybrid retrieval time (`rag_latency_ms`), and LLM inference time (`llm_latency_ms`).
-- **Deterministic Response Caching**: In-memory LRU cache keyed by `hash(redacted_evidence + corpus_version + model)` with a 5-minute TTL. Serves duplicate requests in **< 1.0 ms** with zero LLM cost.
-- **Live Observability Endpoints**:
-  - `GET http://localhost:8080/stats` (Go daemon: requests, collect latencies, audit failures).
-  - `GET http://localhost:8001/stats` (Python service: request counts, token usage, estimated cost, cache hit rate).
-- **Graceful Degradation**: Retries 3 times with exponential backoff on HTTP 429/5xx. If upstream LLM remains unavailable, returns HTTP 200 with raw sanitized telemetry and `ai_status: "unavailable"` rather than crashing with an HTTP 500.
+Illustrates how 46 benchmark cases feed the offline evaluation harness to measure Recall@k and category accuracy alongside GitHub Actions automated unit tests, race checks, and linters.
 
 ---
 
-## Limitations & What I Would Improve Next
+## Quick start
 
-1. **In-Memory Cache & Rate Limiting**: The current response cache and token rate limiter reside in memory per instance. In a horizontally scaled multi-node environment, this should be backed by an external Redis or Valkey cluster.
-2. **Domain-Specific Embedding Fine-Tuning**: Dense retrieval recall@5 is currently 44.57% because general-purpose sentence transformers lack domain training on kernel hex registers and C macros. Fine-tuning on kernel commit logs or adding a cross-encoder reranker would improve ranking.
-3. **Multi-Turn Probing**: The diagnostic engine is currently single-turn. An advanced iteration would orchestrate follow-up system inspection commands (e.g. `bpftrace`, `fexit`, or checking specific `/sys/bus` nodes) based on initial hypotheses.
-4. **Corpus Expansion**: Expanding beyond the 26 core failure docs to include distro-specific bug tracker knowledge bases (Ubuntu Launchpad, Red Hat Bugzilla, Arch Wiki).
+### A. Demo Mode (macOS / Linux / Windows with Docker)
+
+Demo mode uses canned fixtures from `modules/fixtures/` and requires zero kernel privileges.
+
+```bash
+# 1. Clone repository
+git clone https://github.com/anzzzr/kernel-module-manager.git
+cd kernel-module-manager
+
+# 2. Launch container stack in demo mode
+docker compose up -d
+
+# 3. Diagnose a failing module
+curl -s -X POST http://localhost:8080/diagnose \
+  -H "Authorization: Bearer test-token" \
+  -H "Content-Type: application/json" \
+  -d '{"module_name": "nvidia"}' | jq
+```
+
+**Expected JSON Response:**
+```json
+{
+  "module_name": "nvidia",
+  "status": "error",
+  "ai_diagnosis": {
+    "root_cause": "Kernel version mismatch (vermagic error)",
+    "confidence": 0.95,
+    "explanation": "The nvidia kernel module was compiled for kernel 6.8.0-generic, but the running host kernel is 6.11.0-generic.",
+    "recommendations": [
+      "Recompile module against current kernel headers using DKMS",
+      "Run: dkms autoinstall -k $(uname -r)"
+    ],
+    "relevant_docs": ["nvidia_troubleshooting.md"]
+  }
+}
+```
+
+### B. Native Linux Host Run (Real Kernel)
+
+On a live Linux system, run the Go daemon with `CAP_SYS_MODULE` instead of root:
+
+```bash
+# 1. Build binary
+go build -o kernel-manager main.go
+
+# 2. Grant ambient module capabilities (no root required)
+sudo setcap 'cap_sys_module=+ep' kernel-manager
+
+# 3. Run daemon with policy
+export AUTH_TOKEN="prod-secret-token"
+export POLICY_FILE="policy.yaml"
+export DEMO_MODE="false"
+./kernel-manager
+```
 
 ---
 
-## Technical Interview Preparation & Notes
+## API reference
 
-Detailed technical interview questions, concise model answers, known weaknesses, and resume bullet options are documented in:
-👉 **[`docs/INTERVIEW_NOTES.md`](docs/INTERVIEW_NOTES.md)**
+| Method | Endpoint | Scope | Description |
+|---|---|---|---|
+| `GET` | `/health` | Public | Daemon liveness probe |
+| `GET` | `/stats` | Read-only | Request rates, cache hits, and latency stats |
+| `POST` | `/diagnose` | `read` | Collects host logs and returns grounded AI diagnosis |
+| `POST` | `/module/load` | `admin` | Loads module via `modprobe` (supports `?dry_run=true`) |
+| `POST` | `/module/unload`| `admin` | Unloads module via `rmmod` (blocks in-use/critical modules) |
+
+```bash
+# Load module dry-run example
+curl -X POST "http://localhost:8080/module/load?dry_run=true" \
+  -H "Authorization: Bearer admin-token" \
+  -H "Content-Type: application/json" \
+  -d '{"module_name": "wireguard"}'
+```
 
 ---
 
-## License
+## Security
 
-This project is licensed under the [MIT License](LICENSE). Curated documentation summaries are cited and attributed in [`docs/SOURCES.md`](docs/SOURCES.md).
+The project implements defense-in-depth security across both tiers:
+
+- **Privilege Separation**: Go service drops unnecessary root privileges, requiring only `CAP_SYS_MODULE` ([`docs/deploy/kernel-manager.service`](docs/deploy/kernel-manager.service)).
+- **Policy Allowlist & Denylist**: `policy.yaml` restricts manageable modules and strictly forbids unloading storage, filesystem, and network drivers.
+- **Reference Count Checks**: Modules currently in use (`Used by > 0` in `lsmod`) cannot be unloaded.
+- **Constant-Time Auth**: Token comparisons use `subtle.ConstantTimeCompare` against timing attacks.
+- **Telemetry Sanitization**: Regex engine scrubs IPs, MACs, hostnames, usernames, and serials prior to AI processing ([`modules/redact.go`](modules/redact.go)).
+- **Prompt Injection Defense**: Log text is framed strictly as untrusted data inside `<evidence>` blocks.
+- **Destructive Command Filter**: Blocks dangerous shell patterns (`rm -rf`, `dd`, `mkfs`) in model recommendations ([`ai_service/kernel_diagnostic_ai/services/safety.py`](ai_service/kernel_diagnostic_ai/services/safety.py)).
+- **Audit Logging**: Structured append-only logger records timestamps, request IDs, token IDs, actions, and results ([`internal/server/audit.go`](internal/server/audit.go)).
+
+*For threat vectors and STRIDE mitigations, see [docs/THREAT_MODEL.md](docs/THREAT_MODEL.md). Residual risks include zero-day kernel vulnerabilities prior to log capture and compromised host environments.*
+
+---
+
+## Observability & performance
+
+- **Request ID Propagation**: `X-Request-ID` is generated at the Go gateway and propagated across Python spans and structured JSON logs.
+- **Stage-Level Latency**: Tracks durations across collection (1.8 ms), retrieval (11.4 ms), inference (420 ms), and validation (1.2 ms).
+- **Token Accounting & Cost**: Real-time token usage tracked against configurable pricing tables ($0.15 / 1M input tokens).
+- **Service Stats**: Prometheus-compatible counters and latency metrics accessible via `/stats`.
+
+*Detailed benchmark metrics, token economics, and cache latency profiles are documented in [docs/PERFORMANCE.md](docs/PERFORMANCE.md).*
+
+---
+
+## Project structure
+
+```
+kernel-module-manager/
+├── Dockerfile                   # Unprivileged multi-stage Go container
+├── Makefile                     # Build, test, lint, eval, and demo targets
+├── README.md                    # Project documentation and benchmark overview
+├── docker-compose.yml           # Stack composition with DEMO_MODE preconfigured
+├── policy.yaml                  # Module allowlist and critical driver denylist
+├── main.go                      # Go REST daemon entrypoint (:8080)
+├── internal/
+│   └── server/
+│       ├── api.go               # HTTP routing, middleware, and request handlers
+│       ├── audit.go             # Append-only structured audit logger
+│       └── stats.go             # Latency, throughput, and error metrics
+├── modules/
+│   ├── diagnostics.go          # Host telemetry collector (lsmod, dmesg, modinfo)
+│   ├── demo.go                 # Fixture loader for unprivileged macOS/Windows demo
+│   ├── module_manager.go       # exec.CommandContext wrapper for modprobe/rmmod
+│   ├── policy.go               # Allowlist validator and refcount protection
+│   ├── redact.go               # Regex telemetry scrubber (IPs, MACs, secrets)
+│   └── refcount.go             # Parser for /proc/modules and lsmod dependency graphs
+├── ai_service/
+│   ├── Dockerfile               # Python FastAPI container
+│   ├── pyproject.toml           # Package configuration and dependencies
+│   ├── requirements.txt         # Core dependencies (FastAPI, ChromaDB, httpx)
+│   ├── docs/                    # 26 curated Linux kernel failure articles
+│   └── kernel_diagnostic_ai/
+│       ├── main.py              # FastAPI application entrypoint (:8001)
+│       ├── config.py            # Environment settings and price tables
+│       ├── models.py            # Pydantic schemas (DiagnosisResult)
+│       ├── rag/
+│       │   ├── bm25.py          # Exact lexical keyword retriever
+│       │   ├── store.py         # ChromaDB vector store and MiniLM embeddings
+│       │   └── documents.py     # Document chunk loader and metadata parser
+│       └── services/
+│           ├── cache.py         # SHA-256 fingerprint response cache (5m TTL)
+│           ├── llm_client.py    # Resilient client with backoff and degraded mode
+│           ├── rag_service.py   # Hybrid RRF search orchestrator
+│           └── safety.py        # Destructive command recommendation scanner
+├── eval/
+│   ├── cases/                   # 46 realistic evaluation cases (JSON)
+│   ├── run_eval.py              # Benchmark harness (no_rag, rag, full_docs)
+│   ├── metrics.py               # Recall@k, MRR, accuracy, and keyword coverage
+│   └── RESULTS.md               # Measured evaluation benchmarks and analysis
+├── docs/
+│   ├── index.html               # GitHub Pages portal linking all diagrams
+│   ├── THREAT_MODEL.md          # STRIDE analysis and residual risks
+│   ├── PERFORMANCE.md           # Latency breakdown, token costs, and cache metrics
+│   ├── INTERVIEW_NOTES.md       # 15 technical interview questions & known weaknesses
+│   ├── DEMO.md                  # Terminal recording walkthrough and demo recipe
+│   ├── SOURCES.md               # Attributions and upstream kernel documentation URLs
+│   ├── deploy/
+│   │   └── kernel-manager.service # Systemd unit file with CAP_SYS_MODULE
+│   ├── assets/diagrams/         # Rendered 1600x900 diagram PNGs
+│   └── diagrams/                # Archify JSON specifications and HTML deliveries
+└── scripts/
+    └── demo_run.sh              # Interactive demonstration script
+```
+
+---
+
+## Development
+
+```bash
+# Run unit and race tests
+make test
+
+# Run code formatters and linters (Go vet + ruff)
+make lint
+
+# Execute offline evaluation smoke test
+make eval
+
+# Launch local containers in demo mode
+make demo
+
+# Regenerate Archify architecture and workflow diagrams
+node ~/.agents/skills/archify/bin/archify.mjs validate architecture docs/diagrams/architecture.json --quality showcase --repo-root .
+node ~/.agents/skills/archify/bin/archify.mjs deliver architecture docs/diagrams/architecture.json docs/diagrams/architecture.html --quality showcase --repo-root .
+```
+
+---
+
+## Limitations & roadmap
+
+- **In-Memory Cache**: Response cache uses an in-memory TTL dictionary; production clustering requires external Redis.
+- **Offline Embeddings**: ChromaDB runs `all-MiniLM-L6-v2` locally; initial cold start takes ~2 seconds to load model weights.
+- **Cross-Encoder Reranking**: Evaluated hybrid BM25 + Dense RRF; adding a cross-encoder reranker is planned for v0.3.0.
+- **Kernel Tracing**: Telemetry relies on static command output; integration with eBPF kprobes for live trace capture is on the roadmap.
+
+---
+
+## Design decisions
+
+- **Why Go + Python**: Go provides static binary compilation, minimal memory footprint, and low-latency system command execution on the host without runtime dependencies. Python hosts the AI/RAG ecosystem (PyTorch, ChromaDB, Sentence-Transformers, FastAPI) in a separate container boundary.
+- **Why Hybrid Retrieval**: Exact error tokens (`Unknown symbol`, `vermagic`, `Required key`) favor lexical exact matching (BM25), whereas troubleshooting descriptions favor dense vector embeddings. Combining them via Reciprocal Rank Fusion ensures exact error codes are never lost.
+- **Why Not Long Context Stuffing**: While stuffing 26 docs into the prompt achieves high recall, it consumes **5,772 tokens per request** (~$0.01/call). RAG reduces token consumption to **1,132 tokens** (~80% cost savings) while preserving 92.7% keyword coverage.
+
+---
+
+## License & acknowledgements
+
+Distributed under the [MIT License](LICENSE).
+
+System architecture, sequence, and workflow diagrams generated with [Archify](https://github.com/tt-a1i/archify). Curated kernel documentation synthesized from Linux Kernel Documentation and upstream manual pages (see [docs/SOURCES.md](docs/SOURCES.md)).
