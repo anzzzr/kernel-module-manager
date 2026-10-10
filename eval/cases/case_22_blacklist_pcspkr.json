@@ -1,0 +1,32 @@
+{
+  "id": "case_22_blacklist_pcspkr",
+  "module": "pcspkr",
+  "category": "blacklisted module",
+  "evidence": {
+    "module": "pcspkr",
+    "commands": {
+      "uname": "5.15.0-91-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/5.15.0-91-generic/kernel/drivers/input/misc/pcspkr.ko\n",
+      "dmesg": "",
+      "journalctl": "modprobe: Module pcspkr is blacklisted in /etc/modprobe.d/nobeep.conf",
+      "modprobe_deps": "",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: FATAL: Module pcspkr is blacklisted"
+    }
+  },
+  "gold_root_cause_category": "blacklisted module",
+  "gold_keywords": [
+    "blacklisted",
+    "blacklist",
+    "/etc/modprobe.d",
+    "modprobe.d"
+  ],
+  "gold_doc_sources": [
+    "modprobe.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

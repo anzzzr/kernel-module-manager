@@ -1,0 +1,32 @@
+{
+  "id": "case_23_blacklist_floppy",
+  "module": "floppy",
+  "category": "blacklisted module",
+  "evidence": {
+    "module": "floppy",
+    "commands": {
+      "uname": "6.1.0-15-amd64",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/6.1.0-15-amd64/kernel/drivers/block/floppy.ko\n",
+      "dmesg": "",
+      "journalctl": "kernel: modprobe: Module floppy is blacklisted",
+      "modprobe_deps": "",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: FATAL: Module floppy is blacklisted"
+    }
+  },
+  "gold_root_cause_category": "blacklisted module",
+  "gold_keywords": [
+    "blacklisted",
+    "blacklist floppy",
+    "/etc/modprobe.d",
+    "modprobe.d"
+  ],
+  "gold_doc_sources": [
+    "modprobe.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

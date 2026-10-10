@@ -1,0 +1,32 @@
+{
+  "id": "case_02_vermagic_vboxguest",
+  "module": "vboxguest",
+  "category": "vermagic/kernel version mismatch",
+  "evidence": {
+    "module": "vboxguest",
+    "commands": {
+      "uname": "5.15.0-101-generic",
+      "lsmod": "Module                  Size  Used by\next4                  983040  1\n",
+      "modinfo": "filename:       /lib/modules/5.15.0-88-generic/misc/vboxguest.ko\nvermagic:       5.15.0-88-generic SMP mod_unload \ndepends:        \n",
+      "dmesg": "[   34.120911] vboxguest: version magic '5.15.0-88-generic SMP mod_unload' should be '5.15.0-101-generic SMP mod_unload'\n[   34.120920] vboxguest: disagrees about version of symbol module_layout",
+      "journalctl": "kernel: vboxguest: version magic mismatch on kernel update",
+      "modprobe_deps": "insmod /lib/modules/5.15.0-88-generic/misc/vboxguest.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'vboxguest': Exec format error"
+    }
+  },
+  "gold_root_cause_category": "vermagic/kernel version mismatch",
+  "gold_keywords": [
+    "vermagic",
+    "kernel version",
+    "disagrees about version",
+    "exec format error"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

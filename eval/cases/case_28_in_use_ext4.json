@@ -1,0 +1,33 @@
+{
+  "id": "case_28_in_use_ext4",
+  "module": "ext4",
+  "category": "module already loaded/in use",
+  "evidence": {
+    "module": "ext4",
+    "commands": {
+      "uname": "5.15.0-89-generic",
+      "lsmod": "Module                  Size  Used by\next4                  983040  2\n",
+      "modinfo": "filename:       /lib/modules/5.15.0-89-generic/kernel/fs/ext4/ext4.ko\n",
+      "dmesg": "",
+      "journalctl": "root filesystem mounted as ext4",
+      "modprobe_deps": "insmod /lib/modules/5.15.0-89-generic/kernel/fs/ext4/ext4.ko",
+      "loaded_check": "ext4                  983040  2"
+    },
+    "errors": {
+      "rmmod": "rmmod: ERROR: Module ext4 is in use"
+    }
+  },
+  "gold_root_cause_category": "module already loaded/in use",
+  "gold_keywords": [
+    "in use",
+    "used by",
+    "mounted filesystem",
+    "cannot unload",
+    "rmmod"
+  ],
+  "gold_doc_sources": [
+    "kernel_modules.md",
+    "module_loading.md"
+  ],
+  "source_type": "synthetic"
+}

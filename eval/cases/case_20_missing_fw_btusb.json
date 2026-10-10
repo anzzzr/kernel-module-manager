@@ -1,0 +1,33 @@
+{
+  "id": "case_20_missing_fw_btusb",
+  "module": "btusb",
+  "category": "missing firmware",
+  "evidence": {
+    "module": "btusb",
+    "commands": {
+      "uname": "6.2.0-37-generic",
+      "lsmod": "Module                  Size  Used by\nbluetooth             679936  0\n",
+      "modinfo": "filename:       /lib/modules/6.2.0-37-generic/kernel/drivers/bluetooth/btusb.ko\ndepends:        bluetooth\n",
+      "dmesg": "[   11.412091] Bluetooth: hci0: Direct firmware load for intel/ibt-19-0-4.sfi failed with error -2\n[   11.412104] Bluetooth: hci0: Failed to load firmware file (-2)",
+      "journalctl": "bluetoothd[820]: Failed to start bluetooth controller firmware load",
+      "modprobe_deps": "insmod /lib/modules/6.2.0-37-generic/kernel/drivers/bluetooth/btusb.ko",
+      "loaded_check": "btusb                  65536  0"
+    },
+    "errors": {
+      "dmesg": "Bluetooth: hci0: Failed to load firmware file (-2)"
+    }
+  },
+  "gold_root_cause_category": "missing firmware",
+  "gold_keywords": [
+    "firmware",
+    "failed with error -2",
+    "/lib/firmware/intel",
+    "btusb",
+    "linux-firmware"
+  ],
+  "gold_doc_sources": [
+    "common_errors.md",
+    "kernel_modules.md"
+  ],
+  "source_type": "synthetic"
+}

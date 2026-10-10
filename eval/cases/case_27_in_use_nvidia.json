@@ -1,0 +1,35 @@
+{
+  "id": "case_27_in_use_nvidia",
+  "module": "nvidia",
+  "category": "module already loaded/in use",
+  "evidence": {
+    "module": "nvidia",
+    "commands": {
+      "uname": "6.5.0-35-generic",
+      "lsmod": "Module                  Size  Used by\nnvidia_modeset        1556480  1\nnvidia_uvm            3489792  2\nnvidia               56623104  45 nvidia_modeset,nvidia_uvm\n",
+      "modinfo": "filename:       /lib/modules/6.5.0-35-generic/updates/dkms/nvidia.ko\n",
+      "dmesg": "",
+      "journalctl": "systemd[1]: nvidia-persistenced[911]: holding open /dev/nvidia0",
+      "modprobe_deps": "insmod /lib/modules/6.5.0-35-generic/updates/dkms/nvidia.ko",
+      "loaded_check": "nvidia               56623104  45"
+    },
+    "errors": {
+      "rmmod": "rmmod: ERROR: Module nvidia is in use by: nvidia_modeset nvidia_uvm"
+    }
+  },
+  "gold_root_cause_category": "module already loaded/in use",
+  "gold_keywords": [
+    "in use",
+    "used by",
+    "dependent modules",
+    "nvidia_modeset",
+    "nvidia_uvm",
+    "stop services"
+  ],
+  "gold_doc_sources": [
+    "nvidia_troubleshooting.md",
+    "module_dependencies.md"
+  ],
+  "source_type": "adapted_public_bug",
+  "source_reference": "https://forums.developer.nvidia.com/t/rmmod-error-module-nvidia-is-in-use/61054"
+}

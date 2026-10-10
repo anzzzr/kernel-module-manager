@@ -1,0 +1,32 @@
+{
+  "id": "case_46_noisy_bluetooth_spam_during_missing_dep",
+  "module": "nft_compat",
+  "category": "missing dependency",
+  "evidence": {
+    "module": "nft_compat",
+    "commands": {
+      "uname": "6.1.0-21-amd64",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/6.1.0-21-amd64/kernel/net/netfilter/nft_compat.ko\ndepends:        nf_tables,x_tables\n",
+      "dmesg": "[   50.102391] Bluetooth: hci0: unexpected event 0x3e\n[   50.102401] nft_compat: Unknown symbol nf_tables_valid_genid (err -2)\n[   50.102410] Bluetooth: hci0: link disconnected with status 19",
+      "journalctl": "bluetoothd[501]: Endpoint registered: /org/bluez/hci0/A2DP/SBC/Source",
+      "modprobe_deps": "insmod /lib/modules/6.1.0-21-amd64/kernel/net/netfilter/nft_compat.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'nft_compat': Unknown symbol in module"
+    }
+  },
+  "gold_root_cause_category": "missing dependency",
+  "gold_keywords": [
+    "dependency",
+    "nf_tables",
+    "unknown symbol",
+    "depends"
+  ],
+  "gold_doc_sources": [
+    "module_dependencies.md",
+    "modprobe.md"
+  ],
+  "source_type": "synthetic"
+}

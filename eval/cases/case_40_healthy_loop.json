@@ -1,0 +1,30 @@
+{
+  "id": "case_40_healthy_loop",
+  "module": "loop",
+  "category": "healthy module",
+  "evidence": {
+    "module": "loop",
+    "commands": {
+      "uname": "6.8.0-40-generic",
+      "lsmod": "Module                  Size  Used by\nloop                   36864  8\n",
+      "modinfo": "filename:       /lib/modules/6.8.0-40-generic/kernel/drivers/block/loop.ko\nalias:          block-major-7-*\nlicense:        GPL\nvermagic:       6.8.0-40-generic SMP preempt mod_unload \n",
+      "dmesg": "[    1.120911] loop: module loaded\n[    1.120920] loop0: detected 104857600 bytes",
+      "journalctl": "kernel: loop: module loaded successfully",
+      "modprobe_deps": "insmod /lib/modules/6.8.0-40-generic/kernel/drivers/block/loop.ko",
+      "loaded_check": "loop                   36864  8"
+    },
+    "errors": {}
+  },
+  "gold_root_cause_category": "healthy module",
+  "gold_keywords": [
+    "healthy",
+    "normal",
+    "no fault found",
+    "loaded and operating",
+    "no action required"
+  ],
+  "gold_doc_sources": [
+    "kernel_modules.md"
+  ],
+  "source_type": "synthetic"
+}

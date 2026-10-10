@@ -1,0 +1,33 @@
+{
+  "id": "case_35_abi_mismatch_kheaders",
+  "module": "kheaders",
+  "category": "unknown symbol / ABI mismatch",
+  "evidence": {
+    "module": "kheaders",
+    "commands": {
+      "uname": "5.15.0-91-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/5.15.0-91-generic/kernel/kernel/kheaders.ko\n",
+      "dmesg": "[    4.412091] kheaders: disagrees about version of symbol sysfs_create_bin_file",
+      "journalctl": "systemd[1]: Failed to insert kheaders: Exec format error",
+      "modprobe_deps": "insmod /lib/modules/5.15.0-91-generic/kernel/kernel/kheaders.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'kheaders': Exec format error"
+    }
+  },
+  "gold_root_cause_category": "unknown symbol / ABI mismatch",
+  "gold_keywords": [
+    "disagrees about version",
+    "symbol",
+    "ABI mismatch",
+    "vermagic",
+    "kernel"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

@@ -1,0 +1,36 @@
+{
+  "id": "case_36_dkms_nvidia_gcc_mismatch",
+  "module": "nvidia",
+  "category": "DKMS build failure",
+  "evidence": {
+    "module": "nvidia",
+    "commands": {
+      "uname": "6.8.0-40-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "modinfo: ERROR: Module nvidia not found.",
+      "dmesg": "",
+      "journalctl": "dkms[1420]: Error! The /var/lib/dkms/nvidia/535.183.01/build/make.log shows compilation failed.\ncompiler version check failed: kernel built with gcc-13, current CC is gcc-12",
+      "modprobe_deps": "",
+      "loaded_check": ""
+    },
+    "errors": {
+      "dkms": "The /var/lib/dkms/nvidia/535.183.01/build/make.log shows build failure",
+      "modprobe": "modprobe: FATAL: Module nvidia not found in directory /lib/modules/6.8.0-40-generic"
+    }
+  },
+  "gold_root_cause_category": "DKMS build failure",
+  "gold_keywords": [
+    "DKMS",
+    "make.log",
+    "compiler version",
+    "gcc",
+    "build failed",
+    "dkms autoinstall"
+  ],
+  "gold_doc_sources": [
+    "nvidia_troubleshooting.md",
+    "module_loading.md"
+  ],
+  "source_type": "adapted_public_bug",
+  "source_reference": "https://bugs.launchpad.net/ubuntu/+source/nvidia-graphics-drivers/+bug/1968840"
+}

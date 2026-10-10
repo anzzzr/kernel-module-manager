@@ -1,0 +1,34 @@
+{
+  "id": "case_06_missing_dep_nftables",
+  "module": "nft_compat",
+  "category": "missing dependency",
+  "evidence": {
+    "module": "nft_compat",
+    "commands": {
+      "uname": "6.1.0-21-amd64",
+      "lsmod": "Module                  Size  Used by\nx_tables               53248  0\n",
+      "modinfo": "filename:       /lib/modules/6.1.0-21-amd64/kernel/net/netfilter/nft_compat.ko\ndepends:        nf_tables,x_tables\n",
+      "dmesg": "[   45.102391] nft_compat: Unknown symbol nf_tables_valid_genid (err -2)\n[   45.102401] nft_compat: Unknown symbol nft_register_expr (err -2)",
+      "journalctl": "modprobe[1082]: modprobe: ERROR: could not insert 'nft_compat': Unknown symbol in module, or unknown parameter (see dmesg)",
+      "modprobe_deps": "insmod /lib/modules/6.1.0-21-amd64/kernel/net/netfilter/nf_tables.ko\ninsmod /lib/modules/6.1.0-21-amd64/kernel/net/netfilter/nft_compat.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'nft_compat': Unknown symbol in module",
+      "dependency_check": "dependency nf_tables is not loaded"
+    }
+  },
+  "gold_root_cause_category": "missing dependency",
+  "gold_keywords": [
+    "dependency",
+    "depends",
+    "nf_tables",
+    "module_dependencies",
+    "modprobe"
+  ],
+  "gold_doc_sources": [
+    "module_dependencies.md",
+    "modprobe.md"
+  ],
+  "source_type": "synthetic"
+}

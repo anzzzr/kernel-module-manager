@@ -1,0 +1,32 @@
+{
+  "id": "case_25_blacklist_snd_pcsp",
+  "module": "snd_pcsp",
+  "category": "blacklisted module",
+  "evidence": {
+    "module": "snd_pcsp",
+    "commands": {
+      "uname": "6.8.0-38-generic",
+      "lsmod": "Module                  Size  Used by\nsnd_pcm               159744  0\n",
+      "modinfo": "filename:       /lib/modules/6.8.0-38-generic/kernel/sound/drivers/pcsp/snd-pcsp.ko\n",
+      "dmesg": "",
+      "journalctl": "alsa-init: snd_pcsp is blacklisted in /etc/modprobe.d/alsa-base-blacklist.conf",
+      "modprobe_deps": "",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: FATAL: Module snd_pcsp is blacklisted"
+    }
+  },
+  "gold_root_cause_category": "blacklisted module",
+  "gold_keywords": [
+    "blacklisted",
+    "/etc/modprobe.d",
+    "alsa-base-blacklist",
+    "blacklist"
+  ],
+  "gold_doc_sources": [
+    "modprobe.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

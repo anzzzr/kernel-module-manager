@@ -1,0 +1,33 @@
+{
+  "id": "case_19_missing_fw_r8169",
+  "module": "r8169",
+  "category": "missing firmware",
+  "evidence": {
+    "module": "r8169",
+    "commands": {
+      "uname": "6.1.0-22-amd64",
+      "lsmod": "Module                  Size  Used by\nrealtek                32768  0\n",
+      "modinfo": "filename:       /lib/modules/6.1.0-22-amd64/kernel/drivers/net/ethernet/realtek/r8169.ko\nfirmware:       rtl_nic/rtl8168h-2.fw\n",
+      "dmesg": "[    1.821092] r8169 0000:01:00.0: Direct firmware load for rtl_nic/rtl8168h-2.fw failed with error -2\n[    1.821102] r8169 0000:01:00.0: Unable to load firmware rtl_nic/rtl8168h-2.fw (-2)",
+      "journalctl": "kernel: r8169: Direct firmware load for rtl_nic/rtl8168h-2.fw failed with error -2",
+      "modprobe_deps": "insmod /lib/modules/6.1.0-22-amd64/kernel/drivers/net/ethernet/realtek/r8169.ko",
+      "loaded_check": "r8169                  98304  0"
+    },
+    "errors": {
+      "dmesg": "Unable to load firmware rtl_nic/rtl8168h-2.fw (-2)"
+    }
+  },
+  "gold_root_cause_category": "missing firmware",
+  "gold_keywords": [
+    "firmware",
+    "rtl_nic",
+    "error -2",
+    "/lib/firmware",
+    "non-free-firmware"
+  ],
+  "gold_doc_sources": [
+    "common_errors.md",
+    "kernel_modules.md"
+  ],
+  "source_type": "synthetic"
+}

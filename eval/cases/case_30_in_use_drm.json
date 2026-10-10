@@ -1,0 +1,33 @@
+{
+  "id": "case_30_in_use_drm",
+  "module": "drm",
+  "category": "module already loaded/in use",
+  "evidence": {
+    "module": "drm",
+    "commands": {
+      "uname": "6.8.0-40-generic",
+      "lsmod": "Module                  Size  Used by\ndrm_kms_helper        249856  1 i915\ndrm                   614400  4 i915,drm_kms_helper\n",
+      "modinfo": "filename:       /lib/modules/6.8.0-40-generic/kernel/drivers/gpu/drm/drm.ko\n",
+      "dmesg": "",
+      "journalctl": "gdm3[900]: Wayland display server active",
+      "modprobe_deps": "insmod /lib/modules/6.8.0-40-generic/kernel/drivers/gpu/drm/drm.ko",
+      "loaded_check": "drm                   614400  4"
+    },
+    "errors": {
+      "rmmod": "rmmod: ERROR: Module drm is in use by: i915 drm_kms_helper"
+    }
+  },
+  "gold_root_cause_category": "module already loaded/in use",
+  "gold_keywords": [
+    "in use by",
+    "dependent modules",
+    "i915",
+    "drm_kms_helper",
+    "unload dependent modules"
+  ],
+  "gold_doc_sources": [
+    "module_dependencies.md",
+    "kernel_modules.md"
+  ],
+  "source_type": "synthetic"
+}

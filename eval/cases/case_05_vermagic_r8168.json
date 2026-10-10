@@ -1,0 +1,33 @@
+{
+  "id": "case_05_vermagic_r8168",
+  "module": "r8168",
+  "category": "vermagic/kernel version mismatch",
+  "evidence": {
+    "module": "r8168",
+    "commands": {
+      "uname": "6.5.0-41-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/6.5.0-35-generic/updates/dkms/r8168.ko\nvermagic:       6.5.0-35-generic SMP preempt mod_unload modversions\ndepends:        \n",
+      "dmesg": "[    4.201991] r8168: version magic '6.5.0-35-generic SMP preempt mod_unload' should be '6.5.0-41-generic SMP preempt mod_unload'",
+      "journalctl": "network-manager[702]: r8168 ethernet driver failed to load due to vermagic check",
+      "modprobe_deps": "insmod /lib/modules/6.5.0-35-generic/updates/dkms/r8168.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'r8168': Exec format error"
+    }
+  },
+  "gold_root_cause_category": "vermagic/kernel version mismatch",
+  "gold_keywords": [
+    "vermagic",
+    "dkms",
+    "r8168",
+    "rebuild",
+    "exec format error"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

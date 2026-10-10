@@ -1,0 +1,33 @@
+{
+  "id": "case_12_secureboot_vboxdrv",
+  "module": "vboxdrv",
+  "category": "Secure Boot signature rejection",
+  "evidence": {
+    "module": "vboxdrv",
+    "commands": {
+      "uname": "6.2.0-26-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/6.2.0-26-generic/misc/vboxdrv.ko\nsigner:         \nsig_key:        \n",
+      "dmesg": "[   14.020192] Lockdown: modprobe: unsigned module loading is restricted; see man kernel_lockdown.7\n[   14.020205] Loading of unsigned module is rejected",
+      "journalctl": "kernel: Lockdown: modprobe: unsigned module loading is restricted; see man kernel_lockdown.7",
+      "modprobe_deps": "insmod /lib/modules/6.2.0-26-generic/misc/vboxdrv.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'vboxdrv': Operation not permitted"
+    }
+  },
+  "gold_root_cause_category": "Secure Boot signature rejection",
+  "gold_keywords": [
+    "Secure Boot",
+    "lockdown",
+    "unsigned module",
+    "sign",
+    "MOK"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

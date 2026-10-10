@@ -1,0 +1,32 @@
+{
+  "id": "case_29_in_use_e1000e",
+  "module": "e1000e",
+  "category": "module already loaded/in use",
+  "evidence": {
+    "module": "e1000e",
+    "commands": {
+      "uname": "6.1.0-21-amd64",
+      "lsmod": "Module                  Size  Used by\ne1000e                327680  0\n",
+      "modinfo": "filename:       /lib/modules/6.1.0-21-amd64/kernel/drivers/net/ethernet/intel/e1000e/e1000e.ko\n",
+      "dmesg": "[   14.001923] e1000e: eth0 NIC Link is Up 1000 Mbps Full Duplex",
+      "journalctl": "systemd-networkd[420]: eth0 interface is active",
+      "modprobe_deps": "insmod /lib/modules/6.1.0-21-amd64/kernel/drivers/net/ethernet/intel/e1000e/e1000e.ko",
+      "loaded_check": "e1000e                327680  0"
+    },
+    "errors": {
+      "rmmod": "rmmod: ERROR: Module e1000e is in use"
+    }
+  },
+  "gold_root_cause_category": "module already loaded/in use",
+  "gold_keywords": [
+    "in use",
+    "interface is active",
+    "device in use",
+    "ip link set down"
+  ],
+  "gold_doc_sources": [
+    "kernel_modules.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

@@ -1,0 +1,32 @@
+{
+  "id": "case_32_abi_mismatch_openafs",
+  "module": "openafs",
+  "category": "unknown symbol / ABI mismatch",
+  "evidence": {
+    "module": "openafs",
+    "commands": {
+      "uname": "5.15.0-105-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/5.15.0-105-generic/updates/openafs.ko\n",
+      "dmesg": "[   55.912014] openafs: disagrees about version of symbol vfs_read\n[   55.912025] openafs: Unknown symbol vfs_read (err -22)",
+      "journalctl": "openafs-client: modprobe openafs failed with code 1",
+      "modprobe_deps": "insmod /lib/modules/5.15.0-105-generic/updates/openafs.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'openafs': Unknown symbol in module"
+    }
+  },
+  "gold_root_cause_category": "unknown symbol / ABI mismatch",
+  "gold_keywords": [
+    "unknown symbol",
+    "disagrees about version",
+    "ABI",
+    "kernel version change"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

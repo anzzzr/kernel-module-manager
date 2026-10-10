@@ -1,0 +1,29 @@
+{
+  "id": "case_43_healthy_wireguard",
+  "module": "wireguard",
+  "category": "healthy module",
+  "evidence": {
+    "module": "wireguard",
+    "commands": {
+      "uname": "6.8.0-40-generic",
+      "lsmod": "Module                  Size  Used by\nwireguard             114688  0\nip6_udp_tunnel         16384  1 wireguard\nudp_tunnel             24576  1 wireguard\n",
+      "modinfo": "filename:       /lib/modules/6.8.0-40-generic/kernel/net/wireguard/wireguard.ko\nvermagic:       6.8.0-40-generic SMP preempt mod_unload \ndepends:        ip6_udp_tunnel,udp_tunnel\n",
+      "dmesg": "[    8.981023] wireguard: WireGuard 1.0.0 loaded. See www.wireguard.com for information.",
+      "journalctl": "systemd[1]: Started WireGuard Tunnel.",
+      "modprobe_deps": "insmod /lib/modules/6.8.0-40-generic/kernel/net/wireguard/wireguard.ko",
+      "loaded_check": "wireguard             114688  0"
+    },
+    "errors": {}
+  },
+  "gold_root_cause_category": "healthy module",
+  "gold_keywords": [
+    "healthy",
+    "normal",
+    "operating properly",
+    "no fault found"
+  ],
+  "gold_doc_sources": [
+    "kernel_modules.md"
+  ],
+  "source_type": "synthetic"
+}

@@ -1,0 +1,34 @@
+{
+  "id": "case_26_in_use_overlay",
+  "module": "overlay",
+  "category": "module already loaded/in use",
+  "evidence": {
+    "module": "overlay",
+    "commands": {
+      "uname": "6.2.0-39-generic",
+      "lsmod": "Module                  Size  Used by\noverlay               151552  24\n",
+      "modinfo": "filename:       /lib/modules/6.2.0-39-generic/kernel/fs/overlayfs/overlay.ko\n",
+      "dmesg": "",
+      "journalctl": "systemd[1]: Failed to unload kernel module 'overlay': Resource temporarily unavailable",
+      "modprobe_deps": "insmod /lib/modules/6.2.0-39-generic/kernel/fs/overlayfs/overlay.ko",
+      "loaded_check": "overlay               151552  24"
+    },
+    "errors": {
+      "rmmod": "rmmod: ERROR: Module overlay is in use"
+    }
+  },
+  "gold_root_cause_category": "module already loaded/in use",
+  "gold_keywords": [
+    "in use",
+    "Module is in use",
+    "refcount",
+    "used by",
+    "rmmod",
+    "unmount"
+  ],
+  "gold_doc_sources": [
+    "kernel_modules.md",
+    "module_loading.md"
+  ],
+  "source_type": "synthetic"
+}

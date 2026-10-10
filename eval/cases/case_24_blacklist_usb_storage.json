@@ -1,0 +1,32 @@
+{
+  "id": "case_24_blacklist_usb_storage",
+  "module": "usb_storage",
+  "category": "blacklisted module",
+  "evidence": {
+    "module": "usb_storage",
+    "commands": {
+      "uname": "5.10.0-23-amd64",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/5.10.0-23-amd64/kernel/drivers/usb/storage/usb-storage.ko\n",
+      "dmesg": "",
+      "journalctl": "systemd[1]: Security policy: module usb_storage blacklisted in /etc/modprobe.d/security-hardening.conf",
+      "modprobe_deps": "",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: FATAL: Module usb_storage is blacklisted"
+    }
+  },
+  "gold_root_cause_category": "blacklisted module",
+  "gold_keywords": [
+    "blacklisted",
+    "security",
+    "/etc/modprobe.d",
+    "blacklist"
+  ],
+  "gold_doc_sources": [
+    "modprobe.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

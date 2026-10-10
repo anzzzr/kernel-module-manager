@@ -1,0 +1,33 @@
+{
+  "id": "case_33_abi_mismatch_drbd",
+  "module": "drbd",
+  "category": "unknown symbol / ABI mismatch",
+  "evidence": {
+    "module": "drbd",
+    "commands": {
+      "uname": "6.1.0-18-amd64",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/6.1.0-18-amd64/extra/drbd.ko\n",
+      "dmesg": "[   19.231901] drbd: Unknown symbol blk_cleanup_queue (err -2)\n[   19.231910] drbd: Unknown symbol bio_alloc_bioset (err -2)",
+      "journalctl": "drbd.service: Job for drbd.service failed because of unknown kernel symbol",
+      "modprobe_deps": "insmod /lib/modules/6.1.0-18-amd64/extra/drbd.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'drbd': Unknown symbol in module"
+    }
+  },
+  "gold_root_cause_category": "unknown symbol / ABI mismatch",
+  "gold_keywords": [
+    "Unknown symbol",
+    "ABI",
+    "kernel API changed",
+    "module_layout",
+    "rebuild"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

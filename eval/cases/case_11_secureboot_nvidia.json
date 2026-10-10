@@ -1,0 +1,35 @@
+{
+  "id": "case_11_secureboot_nvidia",
+  "module": "nvidia",
+  "category": "Secure Boot signature rejection",
+  "evidence": {
+    "module": "nvidia",
+    "commands": {
+      "uname": "5.15.0-84-generic",
+      "lsmod": "Module                  Size  Used by\n",
+      "modinfo": "filename:       /lib/modules/5.15.0-84-generic/updates/dkms/nvidia.ko\nsigner:         \nsig_key:        \nsig_hashalgo:   \n",
+      "dmesg": "[    8.412091] Lockdown: modprobe: unsigned module loading is restricted; see man kernel_lockdown.7\n[    8.412104] Loading of unsigned module is rejected\n[    8.412110] PKCS#7 signature not found",
+      "journalctl": "systemd-modules-load[450]: Failed to insert module 'nvidia': Key was rejected by service",
+      "modprobe_deps": "insmod /lib/modules/5.15.0-84-generic/updates/dkms/nvidia.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'nvidia': Key was rejected by service"
+    }
+  },
+  "gold_root_cause_category": "Secure Boot signature rejection",
+  "gold_keywords": [
+    "Secure Boot",
+    "unsigned module",
+    "Key was rejected by service",
+    "MOK",
+    "mokutil",
+    "lockdown"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "nvidia_troubleshooting.md"
+  ],
+  "source_type": "adapted_public_bug",
+  "source_reference": "https://askubuntu.com/questions/1023036/key-was-rejected-by-service-when-trying-to-load-nvidia-driver"
+}

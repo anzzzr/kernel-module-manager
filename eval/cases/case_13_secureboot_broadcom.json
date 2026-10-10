@@ -1,0 +1,33 @@
+{
+  "id": "case_13_secureboot_broadcom",
+  "module": "wl",
+  "category": "Secure Boot signature rejection",
+  "evidence": {
+    "module": "wl",
+    "commands": {
+      "uname": "5.15.0-60-generic",
+      "lsmod": "Module                  Size  Used by\ncfg80211              970752  0\n",
+      "modinfo": "filename:       /lib/modules/5.15.0-60-generic/updates/dkms/wl.ko\nsigner:         \n",
+      "dmesg": "[   18.231901] PKCS#7 signature not found\n[   18.231910] Loading of unsigned module is rejected\n[   18.231915] Lockdown: modprobe: unsigned module loading is restricted",
+      "journalctl": "modprobe[612]: Failed to insert 'wl': Key was rejected by service",
+      "modprobe_deps": "insmod /lib/modules/5.15.0-60-generic/updates/dkms/wl.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'wl': Key was rejected by service"
+    }
+  },
+  "gold_root_cause_category": "Secure Boot signature rejection",
+  "gold_keywords": [
+    "Secure Boot",
+    "Key was rejected",
+    "PKCS#7",
+    "unsigned",
+    "mokutil"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "common_errors.md"
+  ],
+  "source_type": "synthetic"
+}

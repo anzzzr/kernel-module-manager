@@ -1,0 +1,34 @@
+{
+  "id": "case_03_vermagic_zfs",
+  "module": "zfs",
+  "category": "vermagic/kernel version mismatch",
+  "evidence": {
+    "module": "zfs",
+    "commands": {
+      "uname": "6.2.0-39-generic",
+      "lsmod": "Module                  Size  Used by\nspl                   188416  0\n",
+      "modinfo": "filename:       /lib/modules/6.2.0-37-generic/extra/zfs.ko\nvermagic:       6.2.0-37-generic SMP preempt mod_unload \ndepends:        spl,znvpair,zcommon,zunicode,zlua,icp\n",
+      "dmesg": "[   12.890112] zfs: version magic '6.2.0-37-generic' should be '6.2.0-39-generic'",
+      "journalctl": "zfs-import-cache[601]: Failed to load ZFS module stack: version magic mismatch",
+      "modprobe_deps": "insmod /lib/modules/6.2.0-37-generic/extra/spl.ko\ninsmod /lib/modules/6.2.0-37-generic/extra/zfs.ko",
+      "loaded_check": ""
+    },
+    "errors": {
+      "modprobe": "modprobe: ERROR: could not insert 'zfs': Exec format error"
+    }
+  },
+  "gold_root_cause_category": "vermagic/kernel version mismatch",
+  "gold_keywords": [
+    "version magic",
+    "vermagic",
+    "kernel update",
+    "module_layout",
+    "recompile"
+  ],
+  "gold_doc_sources": [
+    "module_loading.md",
+    "common_errors.md"
+  ],
+  "source_type": "adapted_public_bug",
+  "source_reference": "https://github.com/openzfs/zfs/issues/13101"
+}
