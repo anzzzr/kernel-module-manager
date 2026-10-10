@@ -1,11 +1,8 @@
 """Tests for the /analyze endpoint."""
 
-import json
-from unittest.mock import patch, AsyncMock
+from unittest.mock import AsyncMock, patch
 
-import pytest
 from fastapi.testclient import TestClient
-
 from kernel_diagnostic_ai.main import app
 
 
@@ -122,6 +119,23 @@ class TestAnalyzeWithMockedLLM:
         assert resp.status_code == 200
         data = resp.json()
         assert "not found" in data["ai_analysis"]["diagnosis"].lower()
+        assert data["ai_status"] == "available"
+
+    @patch("kernel_diagnostic_ai.routers.analyze.call_llm", new_callable=AsyncMock)
+    def test_llm_failure_graceful_degradation(self, mock_llm, mock_env, sample_evidence):
+        mock_llm.side_effect = RuntimeError("Upstream LLM network timeout after retries")
+        client = TestClient(app)
+        resp = client.post(
+            "/analyze",
+            json=sample_evidence,
+            headers={"Authorization": "Bearer test-token"},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert data["ai_status"] == "unavailable"
+        assert "Automated AI reasoning unavailable" in data["ai_analysis"]["diagnosis"]
+        assert len(data["ai_analysis"]["recommendations"]) > 0
+
 
 
 class TestAnalyzeNoToken:
@@ -140,3 +154,25 @@ class TestAnalyzeNoToken:
         client = TestClient(app)
         resp = client.post("/analyze", json=sample_evidence)
         assert resp.status_code == 200
+
+
+class TestAnalyzeDemoMode:
+    """When DEMO_MODE is true, mock diagnosis should succeed even without LLM key."""
+
+    def test_demo_mode_diagnosis_without_llm_key(self, monkeypatch, sample_evidence):
+        monkeypatch.setenv("DEMO_MODE", "true")
+        monkeypatch.delenv("LLM_API_KEY", raising=False)
+        monkeypatch.setenv("AI_SERVICE_TOKEN", "test-token")
+        monkeypatch.setenv("RAG_ENABLED", "false")
+
+        client = TestClient(app)
+        resp = client.post(
+            "/analyze",
+            json=sample_evidence,
+            headers={"Authorization": "Bearer test-token"},
+        )
+        assert resp.status_code == 200
+        data = resp.json()
+        assert "[DEMO]" in data["ai_analysis"]["diagnosis"]
+        assert data["ai_status"] == "available"
+
