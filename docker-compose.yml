@@ -1,0 +1,53 @@
+services:
+  go-service:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: kmm-go-daemon
+    ports:
+      - "8080:8080"
+    environment:
+      - PORT=8080
+      - AI_SERVICE_URL=http://ai-service:8001
+      - AI_SERVICE_TOKEN=${AI_SERVICE_TOKEN:-test-token}
+      - MODULE_API_TOKEN=${MODULE_API_TOKEN:-admin-secret-token}
+      - DEMO_MODE=${DEMO_MODE:-true}
+
+    depends_on:
+      ai-service:
+        condition: service_healthy
+    restart: unless-stopped
+    # ============================================================================
+    # CONTAINER PRIVILEGE DOCUMENTATION:
+    # ----------------------------------------------------------------------------
+    # By default, this container runs strictly UNPRIVILEGED as non-root (UID 10001).
+    # When DEMO_MODE=true (default), the daemon serves canned kernel diagnostics
+    # and simulates module load/unload actions without touching the host OS.
+    #
+    # To run against real host kernel modules:
+    # 1. Set DEMO_MODE=false
+    # 2. Grant least-privilege capability CAP_SYS_MODULE instead of --privileged:
+    #    cap_add:
+    #      - SYS_MODULE
+    #    volumes:
+    #      - /lib/modules:/lib/modules:ro
+    #      - /proc:/proc:ro
+    #      - /sys:/sys:ro
+    # ============================================================================
+
+  ai-service:
+    build:
+      context: ./ai_service
+      dockerfile: Dockerfile
+    container_name: kmm-ai-service
+    ports:
+      - "8001:8001"
+    environment:
+      - AI_SERVICE_PORT=8001
+      - AI_SERVICE_TOKEN=${AI_SERVICE_TOKEN:-test-token}
+      - LLM_API_KEY=${LLM_API_KEY:-}
+      - LLM_BASE_URL=${LLM_BASE_URL:-https://api.openai.com/v1}
+      - LLM_MODEL=${LLM_MODEL:-gpt-4o-mini}
+      - RAG_ENABLED=true
+      - DEMO_MODE=${DEMO_MODE:-true}
+    restart: unless-stopped
